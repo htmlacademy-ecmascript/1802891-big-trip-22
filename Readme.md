@@ -1,7 +1,7 @@
 # Проект «Большое путешествие»
 
 * Студент: [Игорь Ломаев](https://up.htmlacademy.ru/ecmascript/22/user/1802891).
-* Наставник: `Неизвестно`.
+* Наставник: [Антон Попов](https://htmlacademy.ru/profile/joker).
 
 ---
 
