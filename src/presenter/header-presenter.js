@@ -19,6 +19,5 @@ export default class InfoPresenter {
     render(this.tripWrapperContent, this.tripContainer.getElement(), RenderPosition.AFTERBEGIN);
     render(new InfoTitle(), this.tripWrapperContent.getElement());
     render(new InfoData(), this.tripWrapperContent.getElement());
-
   }
 }
