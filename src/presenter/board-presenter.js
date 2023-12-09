@@ -15,6 +15,7 @@ export default class BoardPresenter {
     this.boardContainer = boardContainer;
   }
 
+
   init() {
     render(new SortContentView(), tripContent);
     render(this.tripEvensList, this.boardContainer);
