@@ -51,10 +51,10 @@ function editingEvent(order) {
 
          <div class="event__field-group  event__field-group--time">
            <label class="visually-hidden" for="event-start-time-1">From</label>
-           <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${dueData} ${sTime}">
+           <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${data} ${sTime}">
            &mdash;
            <label class="visually-hidden" for="event-end-time-1">To</label>
-           <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${dueData} ${eTime}">
+           <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${data} ${eTime}">
          </div>
 
          <div class="event__field-group  event__field-group--price">
@@ -77,11 +77,11 @@ function editingEvent(order) {
 
            <div class="event__available-offers">
              <div class="event__offer-selector">
-               <input class="event__offer-checkbox  visually-hidden" id="event-offer-luggage-1" type="checkbox" name="event-offer-luggage">
+               <input class="event__offer-checkbox  visually-hidden" id="event-offer-luggage-1" type="checkbox" name="event-offer-luggage" ${offers[0].isActive ? 'checked' : ''}>
                <label class="event__offer-label" for="event-offer-luggage-1">
-                 <span class="event__offer-title">${offers.title}</span>
+                 <span class="event__offer-title">${offers[0].title}</span>
                  &plus;&euro;&nbsp;
-                 <span class="event__offer-price">${offers.price}</span>
+                 <span class="event__offer-price">${offers[0].price}</span>
                </label>
              </div>
            </div>
