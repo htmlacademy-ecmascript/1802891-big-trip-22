@@ -9,8 +9,8 @@ export default class InfoPresenter {
   tripContainer = new InfoContainer();
   tripWrapperContent = new InfoWrapperContent();
 
-  constructor({boardContainer}) {
-    this.boardContainer = boardContainer;
+  constructor({headerContainer}) {
+    this.boardContainer = headerContainer;
   }
 
   init() {
