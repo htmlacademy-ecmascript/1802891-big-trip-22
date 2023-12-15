@@ -1,8 +1,8 @@
 import {createElement} from '../render.js';
-import { humanizeOrderData } from './utils.js';
-import { typeRoutes, TIME_FORMAT } from './const.js';
+import { humanizeOrderData } from '../utils.js';
+import { typeRoutes, YEAR_MONTH_DAY } from '../const.js';
 
-function selectType() {
+function listType() {
   return `
   <fieldset class="event__type-group">
     <legend class="visually-hidden">Event type</legend>
@@ -15,12 +15,24 @@ function selectType() {
   </fieldset>
 `;
 }
+function createTemplateOffers(offer, checkedOffers) {
+  const checkedOffer = checkedOffers.map((allOffer) => allOffer.id === offer.id);
+  return `
+  <div class="event__offer-selector">
+    <input class="event__offer-checkbox  visually-hidden" id="event-offer-luggage-${offer.id}" type="checkbox" name="event-offer-luggage" ${checkedOffer.map((isOffer) => isOffer === true ? 'checked ' : '').join('')}>
+    <label class="event__offer-label" for="event-offer-luggage-${offer.id}">
+      <span class="event__offer-title">${offer.title}</span>
+      &plus;&euro;&nbsp;
+      <span class="event__offer-price">$${offer.price}</span>
+    </label>
+  </div>`;
+}
 
-function editingEvent(order) {
-  const { dueData, title, startTime, endTime, typeOrders, price, offers } = order;
-  const data = humanizeOrderData(dueData);
-  const sTime = humanizeOrderData(startTime, TIME_FORMAT);
-  const eTime = humanizeOrderData(endTime, TIME_FORMAT);
+function editingEvent(point, checkedOffers, offers, destinations) {
+  const { typePoints, title, startData, endData, price } = point;
+  const { description } = destinations;
+  const sData = humanizeOrderData(startData, YEAR_MONTH_DAY);
+  const eData = humanizeOrderData(endData, YEAR_MONTH_DAY);
   return `
     <li class="trip-events__item">
      <form class="event event--edit" action="#" method="post">
@@ -28,18 +40,18 @@ function editingEvent(order) {
          <div class="event__type-wrapper">
            <label class="event__type  event__type-btn" for="event-type-toggle-1">
              <span class="visually-hidden">Choose event type</span>
-             <img class="event__type-icon" width="17" height="17" src="img/icons/${typeOrders}.png" alt="Event type icon">
+             <img class="event__type-icon" width="17" height="17" src="img/icons/${typePoints.toLowerCase()}.png" alt="Event type icon">
            </label>
            <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox">
 
            <div class="event__type-list">
-            ${selectType()}
+            ${listType()}
            </div>
          </div>
 
          <div class="event__field-group  event__field-group--destination">
            <label class="event__label  event__type-output" for="event-destination-1">
-           ${typeOrders}
+           ${typePoints}
            </label>
            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${title}" list="destination-list-1">
            <datalist id="destination-list-1">
@@ -51,10 +63,10 @@ function editingEvent(order) {
 
          <div class="event__field-group  event__field-group--time">
            <label class="visually-hidden" for="event-start-time-1">From</label>
-           <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${data} ${sTime}">
+           <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${sData}">
            &mdash;
            <label class="visually-hidden" for="event-end-time-1">To</label>
-           <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${data} ${eTime}">
+           <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${eData}">
          </div>
 
          <div class="event__field-group  event__field-group--price">
@@ -76,20 +88,13 @@ function editingEvent(order) {
            <h3 class="event__section-title  event__section-title--offers">Offers</h3>
 
            <div class="event__available-offers">
-             <div class="event__offer-selector">
-               <input class="event__offer-checkbox  visually-hidden" id="event-offer-luggage-1" type="checkbox" name="event-offer-luggage" ${offers[0].isActive ? 'checked' : ''}>
-               <label class="event__offer-label" for="event-offer-luggage-1">
-                 <span class="event__offer-title">${offers[0].title}</span>
-                 &plus;&euro;&nbsp;
-                 <span class="event__offer-price">${offers[0].price}</span>
-               </label>
-             </div>
+             ${offers.offers.map((offer) => createTemplateOffers(offer, checkedOffers)).join('')}
            </div>
          </section>
 
          <section class="event__section  event__section--destination">
            <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-           <p class="event__destination-description">Chamonix-Mont-Blanc (usually shortened to Chamonix) is a resort area near the junction of France, Switzerland and Italy. At the base of Mont Blanc, the highest summit in the Alps, it's renowned for its skiing.</p>
+           <p class="event__destination-description">${description}</p>
          </section>
        </section>
      </form>
@@ -98,12 +103,15 @@ function editingEvent(order) {
 }
 
 export default class EventEdit {
-  constructor({order}) {
-    this.order = order;
+  constructor({point, checkedOffers, offers, destinations}) {
+    this.point = point;
+    this.checkedOffers = checkedOffers;
+    this.offers = offers;
+    this.destinations = destinations;
   }
 
   getTemplate() {
-    return editingEvent(this.order);
+    return editingEvent(this.point, this.checkedOffers, this.offers, this.destinations);
   }
 
   getElement() {

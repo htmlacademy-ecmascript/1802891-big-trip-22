@@ -1,10 +1,10 @@
 import Dayjs from 'dayjs';
-import { DATA_FORMAT } from './const.js';
+import Flatpickr from 'flatpickr';
 
 function getRandomArrayElement(item) {
   return item[Math.floor(Math.random() * item.length)];
 }
-function humanizeOrderData(data, format = DATA_FORMAT){
+function humanizeOrderData(data, format){
   return data ? Dayjs(data).format(format) : '';
 }
 
