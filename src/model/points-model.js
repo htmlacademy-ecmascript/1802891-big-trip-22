@@ -4,20 +4,16 @@ import { mockOffers } from '../mock/offers.js';
 import { mockDestinations } from '../mock/destinations.js';
 
 export default class PointModel {
-  orders = Array.from({length: POINT_COUNT}, getRandomPoint);
-  offers = mockOffers;
-  destinations = mockDestinations;
+  #orders = Array.from({length: POINT_COUNT}, getRandomPoint);
+  #offers = mockOffers;
+  #destinations = mockDestinations;
 
-  getPoints() {
-    return this.orders;
-  }
-
-  getOffer() {
-    return this.offers;
+  get points() {
+    return this.#orders;
   }
 
   getOfferByType(type) {
-    const allOffers = this.getOffer();
+    const allOffers = this.#offers;
     return allOffers.find((offer) => offer.type === type);
   }
 
@@ -26,12 +22,8 @@ export default class PointModel {
     return offersType.offers.filter((item) => itemsId.find((id) => item.id === id));
   }
 
-  getDestinations() {
-    return this.destinations;
-  }
-
   getDestinationsById(id) {
-    const allDestinations = this.getDestinations();
+    const allDestinations = this.#destinations;
     return allDestinations.find((item) => item.id === id);
   }
 }

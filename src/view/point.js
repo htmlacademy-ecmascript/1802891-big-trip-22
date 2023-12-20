@@ -1,6 +1,6 @@
-import {createElement} from '../render.js';
 import { humanizeOrderData } from '../utils.js';
-import { MONTH_DATA_FORMAT, TIME_FORMAT } from '../const.js';
+import { MONTH_DATA_FORMAT, TIME_FORMAT, YEAR_MONTH_DAY } from '../const.js';
+import AbstractView from '../framework/view/abstract-view.js';
 
 function createTemplateOffer(offer) {
   return `
@@ -16,11 +16,11 @@ function createTemplateOffer(offer) {
 function createOrderTemplate(point, offers, destination) {
   const {typePoints, title, startData, endData, price, isFavourite} = point;
   const dataFormat = humanizeOrderData(startData, MONTH_DATA_FORMAT);
-  const sTime = humanizeOrderData(startData, TIME_FORMAT);
-  const eTime = humanizeOrderData(endData, TIME_FORMAT);
+  const formatStartTime = humanizeOrderData(startData, TIME_FORMAT);
+  const formatEndTime = humanizeOrderData(endData, TIME_FORMAT);
 
-  // const totalTime = eTime - sTime;
-  // console.log(sTime,eTime);
+  const totalTime = humanizeOrderData((endData - startData), YEAR_MONTH_DAY);
+
   return `
     <li class="trip-events__item">
       <div class="event">
@@ -31,11 +31,11 @@ function createOrderTemplate(point, offers, destination) {
         <h3 class="event__title">${typePoints} ${title}</h3>
         <div class="event__schedule">
           <p class="event__time">
-            <time class="event__start-time" datetime="${startData}">${sTime}</time>
+            <time class="event__start-time" datetime="${startData}">${formatStartTime}</time>
             &mdash;
-            <time class="event__end-time" datetime="${endData}">${eTime}</time>
+            <time class="event__end-time" datetime="${endData}">${formatEndTime}</time>
           </p>
-          <p class="event__duration">30</p>
+          <p class="event__duration">${totalTime}</p>
         </div>
         <p class="event__price">
           &euro;&nbsp;<span class="event__price-value">${price}</span>
@@ -58,26 +58,19 @@ function createOrderTemplate(point, offers, destination) {
   `;
 }
 
-export default class TripEvents {
+export default class PointComponent extends AbstractView{
+  #point = null;
+  #checkedOffers = null;
+  #destinations = null;
+
   constructor({point, checkedOffers, destinations}) {
-    this.point = point;
-    this.checkedOffers = checkedOffers;
-    this.destinations = destinations;
+    super();
+    this.#point = point;
+    this.#checkedOffers = checkedOffers;
+    this.#destinations = destinations;
   }
 
-  getTemplate() {
-    return createOrderTemplate(this.point, this.checkedOffers, this.destinations);
-  }
-
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
-
-    return this.element;
-  }
-
-  removeElement() {
-    this.element = null;
+  get template() {
+    return createOrderTemplate(this.#point, this.#checkedOffers, this.#destinations);
   }
 }

@@ -1,4 +1,4 @@
-import {createElement} from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 
 function createContainer() {
   return `
@@ -6,20 +6,8 @@ function createContainer() {
   `;
 }
 
-export default class InfoContainer {
-  getTemplate() {
+export default class InfoContainer extends AbstractView{
+  get template() {
     return createContainer();
-  }
-
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
-
-    return this.element;
-  }
-
-  removeElement() {
-    this.element = null;
   }
 }

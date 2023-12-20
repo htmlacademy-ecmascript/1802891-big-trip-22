@@ -1,4 +1,4 @@
-import {createElement} from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 
 function createPrice() {
   return `
@@ -8,20 +8,8 @@ function createPrice() {
   `;
 }
 
-export default class InfoPrice {
-  getTemplate() {
+export default class InfoPrice extends AbstractView{
+  get template() {
     return createPrice();
-  }
-
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
-
-    return this.element;
-  }
-
-  removeElement() {
-    this.element = null;
   }
 }

@@ -1,6 +1,6 @@
-import {createElement} from '../render.js';
 import { humanizeOrderData } from '../utils.js';
 import { typeRoutes, YEAR_MONTH_DAY } from '../const.js';
+import AbstractView from '../framework/view/abstract-view.js';
 
 function listType() {
   return `
@@ -107,27 +107,21 @@ function createListEvents(point, checkedOffers, offers, destinations) {
 }
 
 
-export default class TripEventsList {
+export default class TripEventsList extends AbstractView{
+  #point = null;
+  #checkedOffers = null;
+  #destinations = null;
+  #offers = null;
+
   constructor({point, checkedOffers, offers, destinations}) {
-    this.point = point;
-    this.checkedOffers = checkedOffers;
-    this.offers = offers;
-    this.destinations = destinations;
+    super();
+    this.#point = point;
+    this.#checkedOffers = checkedOffers;
+    this.#offers = offers;
+    this.#destinations = destinations;
   }
 
-  getTemplate() {
-    return createListEvents(this.point, this.checkedOffers, this.offers, this.destinations);
-  }
-
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
-
-    return this.element;
-  }
-
-  removeElement() {
-    this.element = null;
+  get template() {
+    return createListEvents(this.#point, this.#checkedOffers, this.#offers, this.#destinations);
   }
 }

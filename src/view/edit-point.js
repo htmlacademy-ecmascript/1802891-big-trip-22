@@ -1,6 +1,6 @@
-import {createElement} from '../render.js';
 import { humanizeOrderData } from '../utils.js';
 import { typeRoutes, YEAR_MONTH_DAY } from '../const.js';
+import AbstractView from '../framework/view/abstract-view.js';
 
 function listType() {
   return `
@@ -28,7 +28,7 @@ function createTemplateOffers(offer, checkedOffers) {
   </div>`;
 }
 
-function editingEvent(point, checkedOffers, offers, destinations) {
+function editingOffer(point, checkedOffers, offers, destinations) {
   const { typePoints, title, startData, endData, price } = point;
   const { description } = destinations;
   const sData = humanizeOrderData(startData, YEAR_MONTH_DAY);
@@ -102,27 +102,21 @@ function editingEvent(point, checkedOffers, offers, destinations) {
   `;
 }
 
-export default class EventEdit {
+export default class EventEdit extends AbstractView{
+  #point = null;
+  #checkedOffers = null;
+  #destinations = null;
+  #offers = null;
+
   constructor({point, checkedOffers, offers, destinations}) {
-    this.point = point;
-    this.checkedOffers = checkedOffers;
-    this.offers = offers;
-    this.destinations = destinations;
+    super();
+    this.#point = point;
+    this.#checkedOffers = checkedOffers;
+    this.#offers = offers;
+    this.#destinations = destinations;
   }
 
-  getTemplate() {
-    return editingEvent(this.point, this.checkedOffers, this.offers, this.destinations);
-  }
-
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
-
-    return this.element;
-  }
-
-  removeElement() {
-    this.element = null;
+  get template() {
+    return editingOffer(this.#point, this.#checkedOffers, this.#offers, this.#destinations);
   }
 }
