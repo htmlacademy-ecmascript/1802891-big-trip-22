@@ -17,9 +17,9 @@ export default class PointModel {
     return allOffers.find((offer) => offer.type === type);
   }
 
-  getOfferById(type, itemsId) {
+  getOfferById(type, pointId) {
     const offersType = this.getOfferByType(type);
-    return offersType.offers.filter((item) => itemsId.find((id) => item.id === id));
+    return offersType.offers.filter((item) => pointId.find((id) => item.id === id));
   }
 
   getDestinationsById(id) {

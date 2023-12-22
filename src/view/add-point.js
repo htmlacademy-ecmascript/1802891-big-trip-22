@@ -1,12 +1,12 @@
-import { humanizeOrderData } from '../utils.js';
-import { typeRoutes, YEAR_MONTH_DAY } from '../const.js';
+import { humanizeOrderData } from '../utils/utils.js';
+import { TYPE_ROUTES, YEAR_MONTH_DAY } from '../const.js';
 import AbstractView from '../framework/view/abstract-view.js';
 
 function listType() {
   return `
   <fieldset class="event__type-group">
     <legend class="visually-hidden">Event type</legend>
-    ${typeRoutes.map((type) => `
+    ${TYPE_ROUTES.map((type) => `
       <div class="event__type-item">
         <input id="event-type-${type.toLowerCase()}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${type.toLowerCase()}">
         <label class="event__type-label  event__type-label--${type.toLowerCase()}" for="event-type-${type.toLowerCase()}-1">${type}</label>

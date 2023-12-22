@@ -1,5 +1,5 @@
-import { humanizeOrderData } from '../utils.js';
-import { MONTH_DATA_FORMAT, TIME_FORMAT, YEAR_MONTH_DAY } from '../const.js';
+import { humanizeOrderData, dateSubtract } from '../utils/utils.js';
+import { MONTH_DATA_FORMAT, TIME_FORMAT_H_M, YEAR_MONTH_DAY, TIME_FORMAT_M, TIME_FORMAT_H } from '../const.js';
 import AbstractView from '../framework/view/abstract-view.js';
 
 function createTemplateOffer(offer) {
@@ -13,13 +13,13 @@ function createTemplateOffer(offer) {
 }
 
 
-function createOrderTemplate(point, offers, destination) {
+function createOrderTemplate(point, offers) {
   const {typePoints, title, startData, endData, price, isFavourite} = point;
   const dataFormat = humanizeOrderData(startData, MONTH_DATA_FORMAT);
-  const formatStartTime = humanizeOrderData(startData, TIME_FORMAT);
-  const formatEndTime = humanizeOrderData(endData, TIME_FORMAT);
+  const formatStartTime = humanizeOrderData(startData, TIME_FORMAT_H_M);
+  const formatEndTime = humanizeOrderData(endData, TIME_FORMAT_H_M);
 
-  const totalTime = humanizeOrderData((endData - startData), YEAR_MONTH_DAY);
+  const totalTime = `${dateSubtract(endData, startData, TIME_FORMAT_H)}H ${dateSubtract(endData, startData, TIME_FORMAT_M)}M`;
 
   return `
     <li class="trip-events__item">
@@ -62,15 +62,24 @@ export default class PointComponent extends AbstractView{
   #point = null;
   #checkedOffers = null;
   #destinations = null;
+  #handlerEditClick ;
 
-  constructor({point, checkedOffers, destinations}) {
+  constructor({point, checkedOffers, destinations, onEditPointClick}) {
     super();
     this.#point = point;
     this.#checkedOffers = checkedOffers;
     this.#destinations = destinations;
+    this.#handlerEditClick = onEditPointClick;
+
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#onEditPointClick);
   }
 
   get template() {
     return createOrderTemplate(this.#point, this.#checkedOffers, this.#destinations);
   }
+
+  #onEditPointClick = (evt) => {
+    evt.preventDefault();
+    this.#handlerEditClick();
+  };
 }
