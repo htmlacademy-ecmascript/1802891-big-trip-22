@@ -1,4 +1,4 @@
-import {createElement} from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 
 function createWrapperContent() {
   return `
@@ -6,20 +6,8 @@ function createWrapperContent() {
   `;
 }
 
-export default class InfoWrapperContent {
-  getTemplate() {
+export default class InfoWrapperContent extends AbstractView{
+  get template() {
     return createWrapperContent();
-  }
-
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
-
-    return this.element;
-  }
-
-  removeElement() {
-    this.element = null;
   }
 }

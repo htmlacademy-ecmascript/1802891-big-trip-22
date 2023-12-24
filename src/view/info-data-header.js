@@ -1,4 +1,4 @@
-import {createElement} from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 
 function createData() {
   return `
@@ -6,20 +6,8 @@ function createData() {
   `;
 }
 
-export default class InfoText {
-  getTemplate() {
+export default class InfoText extends AbstractView{
+  get template() {
     return createData();
-  }
-
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
-
-    return this.element;
-  }
-
-  removeElement() {
-    this.element = null;
   }
 }
