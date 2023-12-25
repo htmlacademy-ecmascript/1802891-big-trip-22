@@ -1,5 +1,5 @@
 import PointView from '../view/point.js';
-import TripEvensListView from '../view/events-list.js';
+import TripEvensListView from '../view/trip-list.js';
 import SortContentView from '../view/sort-content.js';
 import AddOrderView from '../view/add-point.js';
 import NoPoint from '../view/list-point-empty.js';
