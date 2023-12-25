@@ -1,5 +1,5 @@
-import { humanizeOrderData, dateSubtract } from '../utils/utils.js';
-import { MONTH_DATA_FORMAT, TIME_FORMAT_H_M, YEAR_MONTH_DAY, TIME_FORMAT_M, TIME_FORMAT_H } from '../const.js';
+import { humanizeOrderData, dateSubtract } from '../utils/date.js';
+import { TIME_FORMAT_H_M } from '../const.js';
 import AbstractView from '../framework/view/abstract-view.js';
 
 function createTemplateOffer(offer) {
@@ -14,28 +14,25 @@ function createTemplateOffer(offer) {
 
 
 function createOrderTemplate(point, offers) {
-  const {typePoints, title, startData, endData, price, isFavourite} = point;
-  const dataFormat = humanizeOrderData(startData, MONTH_DATA_FORMAT);
-  const formatStartTime = humanizeOrderData(startData, TIME_FORMAT_H_M);
-  const formatEndTime = humanizeOrderData(endData, TIME_FORMAT_H_M);
-
-  const totalTime = `${dateSubtract(endData, startData, TIME_FORMAT_H)}H ${dateSubtract(endData, startData, TIME_FORMAT_M)}M`;
+  const {typePoints, title, startDate, endDate, price, isFavourite} = point;
+  const formatStartTime = humanizeOrderData(startDate, TIME_FORMAT_H_M);
+  const formatEndTime = humanizeOrderData(endDate, TIME_FORMAT_H_M);
 
   return `
     <li class="trip-events__item">
       <div class="event">
-        <time class="event__date" datetime="${startData}">${dataFormat}</time>
+        <time class="event__date" datetime="${startDate}">${humanizeOrderData(startDate)}</time>
         <div class="event__type">
           <img class="event__type-icon" width="42" height="42" src="img/icons/${typePoints.toLowerCase()}.png" alt="Event type icon">
         </div>
         <h3 class="event__title">${typePoints} ${title}</h3>
         <div class="event__schedule">
           <p class="event__time">
-            <time class="event__start-time" datetime="${startData}">${formatStartTime}</time>
+            <time class="event__start-time" datetime="${startDate}">${formatStartTime}</time>
             &mdash;
-            <time class="event__end-time" datetime="${endData}">${formatEndTime}</time>
+            <time class="event__end-time" datetime="${endDate}">${formatEndTime}</time>
           </p>
-          <p class="event__duration">${totalTime}</p>
+          <p class="event__duration">${dateSubtract(endDate, startDate)}</p>
         </div>
         <p class="event__price">
           &euro;&nbsp;<span class="event__price-value">${price}</span>

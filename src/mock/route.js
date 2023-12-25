@@ -6,8 +6,8 @@ const mockOrders = [
     id: 1,
     typePoints: 'taxi',
     title: 'Geneva',
-    startData: new Date('2023-09-11T10:30'),
-    endData: new Date('2023-09-11T11:00'),
+    startDate: new Date('2023-09-11T10:30:00Z'),
+    endDate: new Date('2023-09-11T11:00:00.00Z'),
     price: 145,
     destinations: '1',
     offers: [
@@ -20,8 +20,8 @@ const mockOrders = [
   {
     typePoints: 'bus',
     title: 'Amsterdam',
-    startData: new Date('2023-12-12T10:30'),
-    endData: new Date('2023-12-12T12:00'),
+    startDate: new Date('2023-12-12T10:30'),
+    endDate: new Date('2023-12-12T12:00'),
     price: 65,
     destinations: '2',
     offers: [
@@ -33,8 +33,8 @@ const mockOrders = [
   {
     typePoints: 'sightseeing',
     title: 'Moscow',
-    startData: new Date('2023-12-12T23:30'),
-    endData: new Date('2023-12-12T23:40'),
+    startDate: new Date('2023-12-12T23:30'),
+    endDate: new Date('2023-12-12T23:40'),
     price: 50,
     destinations: '3',
     offers: [],

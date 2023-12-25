@@ -1,4 +1,4 @@
-import { humanizeOrderData } from '../utils/utils.js';
+import { humanizeOrderData } from '../utils/date.js';
 import { TYPE_ROUTES, YEAR_MONTH_DAY } from '../const.js';
 import AbstractView from '../framework/view/abstract-view.js';
 

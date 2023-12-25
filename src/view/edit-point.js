@@ -1,4 +1,4 @@
-import { humanizeOrderData } from '../utils/utils.js';
+import { humanizeOrderData } from '../utils/date.js';
 import { TYPE_ROUTES, YEAR_MONTH_DAY } from '../const.js';
 import AbstractView from '../framework/view/abstract-view.js';
 
@@ -29,10 +29,10 @@ function createTemplateOffers(offer, checkedOffers) {
 }
 
 function editingOffer(point, checkedOffers, offers, destinations) {
-  const { typePoints, title, startData, endData, price } = point;
+  const { typePoints, title, startDate, endDate, price } = point;
   const { description } = destinations;
-  const sData = humanizeOrderData(startData, YEAR_MONTH_DAY);
-  const eData = humanizeOrderData(endData, YEAR_MONTH_DAY);
+  const startFormatDate = humanizeOrderData(startDate, YEAR_MONTH_DAY);
+  const endFormatDate = humanizeOrderData(endDate, YEAR_MONTH_DAY);
   return `
     <li class="trip-events__item">
      <form class="event event--edit" action="#" method="post">
@@ -63,10 +63,10 @@ function editingOffer(point, checkedOffers, offers, destinations) {
 
          <div class="event__field-group  event__field-group--time">
            <label class="visually-hidden" for="event-start-time-1">From</label>
-           <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${sData}">
+           <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${startFormatDate}">
            &mdash;
            <label class="visually-hidden" for="event-end-time-1">To</label>
-           <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${eData}">
+           <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${endFormatDate}">
          </div>
 
          <div class="event__field-group  event__field-group--price">
