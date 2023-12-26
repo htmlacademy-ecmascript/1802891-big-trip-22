@@ -415,12 +415,14 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
+ //исправь
 
 class contentPresenter {
   #tripList = new _view_trip_list_js__WEBPACK_IMPORTED_MODULE_0__["default"]();
   #noPointComponent = new _view_list_point_empty_js__WEBPACK_IMPORTED_MODULE_2__["default"]();
   #sortContentComponent = new _view_sort_content_js__WEBPACK_IMPORTED_MODULE_1__["default"]();
+  // тут presenter
+
   #contentContainer = null;
   #pointModel = null;
   constructor({
@@ -444,8 +446,8 @@ class contentPresenter {
     }
     (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_4__.render)(this.#sortContentComponent, this.#contentContainer);
     (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_4__.render)(this.#tripList, this.#contentContainer);
-    const renderPoint = new _point_presenter_js__WEBPACK_IMPORTED_MODULE_3__["default"](this.#tripList.element, this.#pointModel);
     for (const dataPoint of this.dataPoints) {
+      const renderPoint = new _point_presenter_js__WEBPACK_IMPORTED_MODULE_3__["default"](this.#tripList.element, this.#pointModel);
       renderPoint.init(dataPoint);
     }
   }
@@ -543,7 +545,7 @@ class RenderPoint {
         document.removeEventListener('keydown', escKeyDownHandler);
       }
     };
-    const pointComponent = new _view_point_js__WEBPACK_IMPORTED_MODULE_1__["default"]({
+    this.#pointComponent = new _view_point_js__WEBPACK_IMPORTED_MODULE_1__["default"]({
       point: point,
       checkedOffers: [...this.#pointModel.getOfferById(point.typePoints, point.offers)],
       destinations: this.#pointModel.getDestinationsById(point.destinations),
@@ -552,7 +554,7 @@ class RenderPoint {
         document.addEventListener('keydown', escKeyDownHandler);
       }
     });
-    const pointEditComponent = new _view_edit_point_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+    this.#pointEditComponent = new _view_edit_point_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
       point: point,
       checkedOffers: [...this.#pointModel.getOfferById(point.typePoints, point.offers)],
       offers: this.#pointModel.getOfferByType(point.typePoints),
@@ -565,24 +567,29 @@ class RenderPoint {
         replaceEditFormToPoint();
       }
     });
+    if (prevPointComponent === null || prevPointEditComponent === null) {
+      (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_2__.render)(this.#pointComponent, this.#containerPoint);
+      return;
+    }
+    if (this.#containerPoint.contains(prevPointComponent.element)) {
+      (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_2__.replace)(this.#pointEditComponent, prevPointComponent);
+    }
 
-    // if (prevPointComponent === null || prevPointEditComponent === null) {
-    //   render(this.#pointComponent, this.#containerPoint);
-    //   return;
-    // }
-
-    // if (this.#containerPoint.contains(prevPointComponent.element)) {
-    //   replace(this.#pointEditComponent, prevPointComponent);
-    // }
+    // remove(prevPointComponent);
+    // remove(prevPointEditComponent);
 
     function replacePointToEditPoint() {
-      (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_2__.replace)(pointEditComponent, pointComponent);
+      (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_2__.replace)(this.#pointEditComponent, this.#pointComponent);
     }
     function replaceEditFormToPoint() {
-      (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_2__.replace)(pointComponent, pointEditComponent);
+      (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_2__.replace)(this.#pointComponent, this.#pointEditComponent);
     }
-    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_2__.render)(pointComponent, this.#containerPoint);
+    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_2__.render)(this.#pointComponent, this.#containerPoint);
   }
+  // destroy() {
+  //   remove(this.#taskComponent);
+  //   remove(this.#taskEditComponent);
+  // }
 }
 
 /***/ }),
@@ -4580,4 +4587,4 @@ headerPresenter.init();
 
 /******/ })()
 ;
-//# sourceMappingURL=bundle.ad181d1a368aa83bd9a4.js.map
+//# sourceMappingURL=bundle.1e82d44ef9b8981141a5.js.map
