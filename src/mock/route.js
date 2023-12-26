@@ -1,5 +1,4 @@
-import { getRandomArrayElement } from '../utils/common.js';
-import { typeRoutes } from '../const.js';
+import { getRandomArrayElement } from '../utils/mock-utils';
 
 const mockOrders = [
   {
