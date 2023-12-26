@@ -36,7 +36,7 @@ export default class contentPresenter {
     render(this.#sortContentComponent, this.#contentContainer);
     render(this.#tripList, this.#contentContainer);
 
-    const renderPoint = new RenderPoint(this.#contentContainer, this.#pointModel);
+    const renderPoint = new RenderPoint(this.#tripList.element, this.#pointModel);
 
     for (const dataPoint of this.dataPoints) {
       renderPoint.init(dataPoint);

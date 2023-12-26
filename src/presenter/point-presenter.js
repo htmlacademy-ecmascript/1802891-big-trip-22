@@ -28,7 +28,7 @@ export default class RenderPoint {
       }
     };
 
-    this.#pointComponent = new PointView({
+    const pointComponent = new PointView({
       point: point,
       checkedOffers: [...this.#pointModel.getOfferById(point.typePoints, point.offers)],
       destinations: this.#pointModel.getDestinationsById(point.destinations),
@@ -38,7 +38,7 @@ export default class RenderPoint {
       }
     });
 
-    this.#pointEditComponent = new EditPointView({
+    const pointEditComponent = new EditPointView({
       point: point,
       checkedOffers: [...this.#pointModel.getOfferById(point.typePoints, point.offers)],
       offers: this.#pointModel.getOfferByType(point.typePoints),
@@ -52,24 +52,24 @@ export default class RenderPoint {
       }
     });
 
-    if (prevPointComponent === null || prevPointEditComponent === null) {
-      render(this.#pointComponent, this.#containerPoint);
-      return;
-    }
+    // if (prevPointComponent === null || prevPointEditComponent === null) {
+    //   render(this.#pointComponent, this.#containerPoint);
+    //   return;
+    // }
 
-    if (this.#containerPoint.contains(prevPointComponent.element)) {
-      replace(this.#pointEditComponent, prevPointComponent);
-    }
+    // if (this.#containerPoint.contains(prevPointComponent.element)) {
+    //   replace(this.#pointEditComponent, prevPointComponent);
+    // }
 
     function replacePointToEditPoint() {
-      replace(this.#pointEditComponent, this.#pointComponent);
+      replace(pointEditComponent, pointComponent);
     }
 
     function replaceEditFormToPoint() {
-      replace(this.#pointComponent , this.#pointEditComponent);
+      replace(pointComponent, pointEditComponent);
     }
 
-
+    render(pointComponent, this.#containerPoint);
   }
 
 }
