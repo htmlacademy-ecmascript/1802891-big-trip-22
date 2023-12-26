@@ -1,14 +1,14 @@
 import TripEvensListView from '../view/trip-list.js';
 import SortContentView from '../view/sort-content.js';
 import NoPoint from '../view/list-point-empty.js';
-import RenderPoint from './point-presenter.js';
+import RenderPoint from './point-presenter.js';//исправь
 import { render } from '../framework/render.js';
 
 export default class contentPresenter {
   #tripList = new TripEvensListView();
   #noPointComponent = new NoPoint();
   #sortContentComponent = new SortContentView();
-
+// тут presenter
 
   #contentContainer = null;
   #pointModel = null;
@@ -36,11 +36,9 @@ export default class contentPresenter {
     render(this.#sortContentComponent, this.#contentContainer);
     render(this.#tripList, this.#contentContainer);
 
-    const renderPoint = new RenderPoint(this.#tripList.element, this.#pointModel);
-
     for (const dataPoint of this.dataPoints) {
+      const renderPoint = new RenderPoint(this.#tripList.element, this.#pointModel);
       renderPoint.init(dataPoint);
     }
   }
-
 }

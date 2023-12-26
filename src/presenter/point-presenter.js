@@ -1,6 +1,6 @@
 import EditPointView from '../view/edit-point.js';
 import PointView from '../view/point.js';
-import { render, replace } from '../framework/render.js';
+import { render, replace, remove } from '../framework/render.js';
 
 export default class RenderPoint {
   #containerPoint = null;
@@ -28,7 +28,7 @@ export default class RenderPoint {
       }
     };
 
-    const pointComponent = new PointView({
+    this.#pointComponent = new PointView({
       point: point,
       checkedOffers: [...this.#pointModel.getOfferById(point.typePoints, point.offers)],
       destinations: this.#pointModel.getDestinationsById(point.destinations),
@@ -38,7 +38,7 @@ export default class RenderPoint {
       }
     });
 
-    const pointEditComponent = new EditPointView({
+    this.#pointEditComponent = new EditPointView({
       point: point,
       checkedOffers: [...this.#pointModel.getOfferById(point.typePoints, point.offers)],
       offers: this.#pointModel.getOfferByType(point.typePoints),
@@ -52,24 +52,30 @@ export default class RenderPoint {
       }
     });
 
-    // if (prevPointComponent === null || prevPointEditComponent === null) {
-    //   render(this.#pointComponent, this.#containerPoint);
-    //   return;
-    // }
+    if (prevPointComponent === null || prevPointEditComponent === null) {
+      render(this.#pointComponent, this.#containerPoint);
+      return;
+    }
 
-    // if (this.#containerPoint.contains(prevPointComponent.element)) {
-    //   replace(this.#pointEditComponent, prevPointComponent);
-    // }
+    if (this.#containerPoint.contains(prevPointComponent.element)) {
+      replace(this.#pointEditComponent, prevPointComponent);
+    }
+
+    // remove(prevPointComponent);
+    // remove(prevPointEditComponent);
 
     function replacePointToEditPoint() {
-      replace(pointEditComponent, pointComponent);
+      replace(this.#pointEditComponent, this.#pointComponent);
     }
 
     function replaceEditFormToPoint() {
-      replace(pointComponent, pointEditComponent);
+      replace(this.#pointComponent, this.#pointEditComponent);
     }
 
-    render(pointComponent, this.#containerPoint);
+    render(this.#pointComponent, this.#containerPoint);
   }
-
+  // destroy() {
+  //   remove(this.#taskComponent);
+  //   remove(this.#taskEditComponent);
+  // }
 }
