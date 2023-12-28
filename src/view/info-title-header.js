@@ -6,7 +6,7 @@ function createTitle() {
   `;
 }
 
-export default class InfoTitle extends AbstractView{
+export default class InfoTitleView extends AbstractView{
   get template() {
     return createTitle();
   }

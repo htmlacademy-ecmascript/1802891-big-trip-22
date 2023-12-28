@@ -28,7 +28,7 @@ function createTemplateOffers(offer, checkedOffers) {
   </div>`;
 }
 
-function editingOffer(point, checkedOffers, offers, destinations) {
+function editingPoint(point, checkedOffers, offers, destinations) {
   const { typePoints, title, startDate, endDate, price } = point;
   const { description } = destinations;
   const startFormatDate = humanizeOrderData(startDate, YEAR_MONTH_DAY);
@@ -102,39 +102,31 @@ function editingOffer(point, checkedOffers, offers, destinations) {
   `;
 }
 
-export default class EventEdit extends AbstractView{
+export default class EventEditView extends AbstractView{
   #point = null;
   #checkedOffers = null;
   #destinations = null;
   #offers = null;
-  #handlerFormSubmit = null;
   #handlerCloseFormClick = null;
 
-  constructor({point, checkedOffers, offers, destinations, onFormSubmit, onCloseFormClick}) {
+  constructor({point, checkedOffers, offers, destinations, onFormSubmit }) {
     super();
     this.#point = point;
     this.#checkedOffers = checkedOffers;
     this.#offers = offers;
     this.#destinations = destinations;
-    this.#handlerFormSubmit = onFormSubmit;
-    this.#handlerCloseFormClick = onCloseFormClick;
+    this.#handlerCloseFormClick = onFormSubmit;
 
     this.element.querySelector('.event__save-btn').addEventListener('click', this.#onEditPointSubmit);
-    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#onCloseEditPointClick);
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#onEditPointSubmit);
   }
 
   get template() {
-    return editingOffer(this.#point, this.#checkedOffers, this.#offers, this.#destinations);
+    return editingPoint(this.#point, this.#checkedOffers, this.#offers, this.#destinations);
   }
 
   #onEditPointSubmit = (evt) => {
     evt.preventDefault();
-    this.#handlerFormSubmit();
-  };
-
-  #onCloseEditPointClick = (evt) => {
-    evt.preventDefault();
     this.#handlerCloseFormClick();
   };
-
 }

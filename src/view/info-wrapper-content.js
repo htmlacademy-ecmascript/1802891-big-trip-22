@@ -6,7 +6,7 @@ function createWrapperContent() {
   `;
 }
 
-export default class InfoWrapperContent extends AbstractView{
+export default class InfoWrapperContentView extends AbstractView{
   get template() {
     return createWrapperContent();
   }

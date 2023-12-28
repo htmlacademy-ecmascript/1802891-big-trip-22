@@ -8,7 +8,7 @@ function createPrice() {
   `;
 }
 
-export default class InfoPrice extends AbstractView{
+export default class InfoPriceView extends AbstractView{
   get template() {
     return createPrice();
   }

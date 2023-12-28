@@ -29,7 +29,7 @@ function createTemplateOffers(offer) {
 }
 
 function createListEvents(point, checkedOffers, offers, destinations) {
-  const { typePoints, title, startData, endData, price } = point;
+  const { title, startData, endData, price } = point;
   const { description, pictures } = destinations;
   const sData = humanizeOrderData(startData, YEAR_MONTH_DAY);
   const eData = humanizeOrderData(endData, YEAR_MONTH_DAY);
@@ -107,7 +107,7 @@ function createListEvents(point, checkedOffers, offers, destinations) {
 }
 
 
-export default class TripEventsList extends AbstractView{
+export default class TripEventsListView extends AbstractView{
   #point = null;
   #checkedOffers = null;
   #destinations = null;

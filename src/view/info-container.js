@@ -6,7 +6,7 @@ function createContainer() {
   `;
 }
 
-export default class InfoContainer extends AbstractView{
+export default class InfoContainerView extends AbstractView{
   get template() {
     return createContainer();
   }

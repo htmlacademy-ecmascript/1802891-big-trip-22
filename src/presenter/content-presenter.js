@@ -1,17 +1,20 @@
 import TripEvensListView from '../view/trip-list.js';
 import SortContentView from '../view/sort-content.js';
-import NoPoint from '../view/list-point-empty.js';
-import RenderPoint from './point-presenter.js';//исправь
+import NoPointView from '../view/list-point-empty.js';
+import PointPresenter from './point-presenter.js';
 import { render } from '../framework/render.js';
+import { updateDataItem } from '../utils/common.js';
 
 export default class contentPresenter {
   #tripList = new TripEvensListView();
-  #noPointComponent = new NoPoint();
+  #noPointComponent = new NoPointView();
   #sortContentComponent = new SortContentView();
-// тут presenter
 
   #contentContainer = null;
   #pointModel = null;
+  #dataPoints = null;
+
+  #pointPresenters = new Map();
 
   constructor({contentContainer, pointModel}) {
     this.#contentContainer = contentContainer;
@@ -19,26 +22,48 @@ export default class contentPresenter {
   }
 
   init() {
-    this.dataPoints = [...this.#pointModel.points];
-    this.#renderBoard();
+    this.#dataPoints = [...this.#pointModel.points];
+    this.#renderContents();
   }
 
   #renderNoPoint() {
     render(this.#noPointComponent, this.#contentContainer);
   }
 
-  #renderBoard() {
-    if (this.dataPoints.length === 0) {
+  #renderContents() {
+    if (this.#dataPoints.length === 0) {
       this.#renderNoPoint();
       return;
     }
 
     render(this.#sortContentComponent, this.#contentContainer);
     render(this.#tripList, this.#contentContainer);
+    this.#renderPoints();
+  }
 
-    for (const dataPoint of this.dataPoints) {
-      const renderPoint = new RenderPoint(this.#tripList.element, this.#pointModel);
-      renderPoint.init(dataPoint);
+  #renderPoints() {
+    for (const dataPoint of this.#dataPoints) {
+      const pointView = new PointPresenter(this.#tripList.element, this.#pointModel, this.#handlerPointChange, this.#handlerModeChange);
+      pointView.init(dataPoint);
+
+      this.#pointPresenters.set(dataPoint.id, pointView);
     }
   }
+
+  #handlerPointChange = (updatePoint) => {
+    this.#dataPoints = updateDataItem(this.#dataPoints, updatePoint);
+    this.#pointPresenters.get(updatePoint.id).init(updatePoint);
+  };
+
+  #handlerModeChange = () => {
+    this.#pointPresenters.forEach((presenter) => presenter.resetView());
+  };
+
+
+  #clearPoints() {
+    this.#pointPresenters.forEach((presenter) => presenter.destroy);
+    this.#pointPresenters.clear();
+  }
+
+
 }

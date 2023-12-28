@@ -6,7 +6,7 @@ function noPointTemplate() {
   `;
 }
 
-export default class NoPoint extends AbstractView {
+export default class NoPointView extends AbstractView {
   get template() {
     return noPointTemplate();
   }

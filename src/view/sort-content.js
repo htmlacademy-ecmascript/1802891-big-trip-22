@@ -31,7 +31,7 @@ function createTripSortContent() {
   `;
 }
 
-export default class TripSortContent extends AbstractView{
+export default class TripSortPointsView extends AbstractView{
   get template() {
     return createTripSortContent();
   }
