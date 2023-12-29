@@ -1,85 +1,69 @@
-import PointView from '../view/point.js';
 import TripEvensListView from '../view/trip-list.js';
 import SortContentView from '../view/sort-content.js';
-import AddOrderView from '../view/add-point.js';
-import NoPoint from '../view/list-point-empty.js';
-import EditPointView from '../view/edit-point.js';
-import { render, replace } from '../framework/render.js';
+import NoPointView from '../view/list-point-empty.js';
+import PointPresenter from './point-presenter.js';
+import { render } from '../framework/render.js';
+import { updateDataItem } from '../utils/common.js';
 
 export default class contentPresenter {
-  #evensList = new TripEvensListView();
+  #tripList = new TripEvensListView();
+  #noPointComponent = new NoPointView();
+  #sortContentComponent = new SortContentView();
 
   #contentContainer = null;
   #pointModel = null;
+  #dataPoints = null;
+
+  #pointPresenters = new Map();
 
   constructor({contentContainer, pointModel}) {
     this.#contentContainer = contentContainer;
     this.#pointModel = pointModel;
   }
 
-
   init() {
-    this.dataPoints = [...this.#pointModel.points];
-    this.#renderBoardPoints();
+    this.#dataPoints = [...this.#pointModel.points];
+    this.#renderContents();
   }
 
-  #renderBoardPoints() {
-    if (this.dataPoints.length === 0) {
-      render(new NoPoint, this.#contentContainer);
+  #renderNoPoint() {
+    render(this.#noPointComponent, this.#contentContainer);
+  }
+
+  #renderContents() {
+    if (this.#dataPoints.length === 0) {
+      this.#renderNoPoint();
       return;
     }
 
+    render(this.#sortContentComponent, this.#contentContainer);
+    render(this.#tripList, this.#contentContainer);
+    this.#renderPoints();
+  }
 
-    render(new SortContentView(), this.#contentContainer);
-    render(this.#evensList, this.#contentContainer);
+  #renderPoints() {
+    for (const dataPoint of this.#dataPoints) {
+      const pointView = new PointPresenter(this.#tripList.element, this.#pointModel, this.#handlerPointChange, this.#handlerModeChange);
+      pointView.init(dataPoint);
 
-    for (const dataPoint of this.dataPoints) {
-      this.#renderPoint(dataPoint);
+      this.#pointPresenters.set(dataPoint.id, pointView);
     }
   }
 
-  #renderPoint(point) {
-    const escKeyDownHandler = (evt) => {
-      if (evt.key === 'Escape') {
-        evt.preventDefault();
-        replaceEditFormToPoint();
-        document.removeEventListener('keydown', escKeyDownHandler);
-      }
-    };
+  #handlerPointChange = (updatePoint) => {
+    this.#dataPoints = updateDataItem(this.#dataPoints, updatePoint);
+    this.#pointPresenters.get(updatePoint.id).init(updatePoint);
+  };
 
-    const pointComponent = new PointView({
-      point: point,
-      checkedOffers: [...this.#pointModel.getOfferById(point.typePoints, point.offers)],
-      destinations: this.#pointModel.getDestinationsById(point.destinations),
-      onEditPointClick: () => {
-        replacePointToEditPoint();
-        document.addEventListener('keydown', escKeyDownHandler);
-      }
-    });
+  #handlerModeChange = () => {
+    this.#pointPresenters.forEach((presenter) => presenter.resetView());
+  };
 
-    const editPoint = new EditPointView({
-      point: point,
-      checkedOffers: [...this.#pointModel.getOfferById(point.typePoints, point.offers)],
-      offers: this.#pointModel.getOfferByType(point.typePoints),
-      destinations: this.#pointModel.getDestinationsById(point.destinations),
-      onFormSubmit: () => {
-        replaceEditFormToPoint();
-        document.addEventListener('keydown', escKeyDownHandler);
-      },
-      onCloseFormClick: () => {
-        replaceEditFormToPoint();
-      }
-    });
 
-    function replacePointToEditPoint() {
-      replace(editPoint, pointComponent);
-    }
-
-    function replaceEditFormToPoint() {
-      replace(pointComponent, editPoint);
-    }
-
-    render(pointComponent, this.#evensList.element);
+  #clearPoints() {
+    this.#pointPresenters.forEach((presenter) => presenter.destroy);
+    this.#pointPresenters.clear();
   }
+
 
 }

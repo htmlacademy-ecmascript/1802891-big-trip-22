@@ -24,7 +24,7 @@ function createTripControls() {
   `;
 }
 
-export default class TripControls extends AbstractView{
+export default class TripControlsView extends AbstractView{
   get template() {
     return createTripControls();
   }

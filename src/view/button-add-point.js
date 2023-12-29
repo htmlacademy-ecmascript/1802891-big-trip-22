@@ -8,7 +8,7 @@ function addPointButtonTemplate() {
   `;
 }
 
-export default class ButtonAddPoint extends AbstractView{
+export default class ButtonAddPointView extends AbstractView{
   // #handClick = null;
 
   // constructor({onClick}) {

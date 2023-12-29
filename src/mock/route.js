@@ -1,5 +1,5 @@
-import { getRandomArrayElement } from '../utils/common.js';
-import { typeRoutes } from '../const.js';
+import { getRandomArrayElement } from '../utils/mock-utils.js';
+import { nanoid } from 'nanoid';
 
 const mockOrders = [
   {
@@ -43,7 +43,11 @@ const mockOrders = [
 ];
 
 function getRandomPoint() {
-  return getRandomArrayElement(mockOrders);
+  return {
+    id: nanoid(),
+    ...getRandomArrayElement(mockOrders)
+  };
+
 }
 
 

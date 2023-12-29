@@ -6,7 +6,7 @@ function createData() {
   `;
 }
 
-export default class InfoText extends AbstractView{
+export default class InfoTextView extends AbstractView{
   get template() {
     return createData();
   }

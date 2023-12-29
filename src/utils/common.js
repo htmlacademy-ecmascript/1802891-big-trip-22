@@ -1,5 +1,5 @@
-function getRandomArrayElement(item) {
-  return item[Math.floor(Math.random() * item.length)];
+function updateDataItem(items, update) {
+  return items.map((item) => item.id === update.id ? update : item);
 }
 
-export { getRandomArrayElement };
+export { updateDataItem };

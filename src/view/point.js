@@ -55,20 +55,23 @@ function createOrderTemplate(point, offers) {
   `;
 }
 
-export default class PointComponent extends AbstractView{
+export default class PointView extends AbstractView{
   #point = null;
   #checkedOffers = null;
   #destinations = null;
-  #handlerEditClick ;
+  #handlerEditClick = null;
+  #handlerChangeFavoriteClick = null;
 
-  constructor({point, checkedOffers, destinations, onEditPointClick}) {
+  constructor({point, checkedOffers, destinations, onEditPointClick, onFavoriteChangeClick}) {
     super();
     this.#point = point;
     this.#checkedOffers = checkedOffers;
     this.#destinations = destinations;
     this.#handlerEditClick = onEditPointClick;
+    this.#handlerChangeFavoriteClick = onFavoriteChangeClick;
 
     this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#onEditPointClick);
+    this.element.querySelector('.event__favorite-btn').addEventListener('click', this.#onFavoriteChangeClick);
   }
 
   get template() {
@@ -79,4 +82,11 @@ export default class PointComponent extends AbstractView{
     evt.preventDefault();
     this.#handlerEditClick();
   };
+
+  #onFavoriteChangeClick = (evt) => {
+    evt.preventDefault();
+    this.#handlerChangeFavoriteClick();
+  };
+
+
 }
