@@ -1,18 +1,22 @@
 import TripEvensListView from '../view/trip-list.js';
-import SortContentView from '../view/sort-content.js';
+import SortPointView from '../view/sort-point.js';
 import NoPointView from '../view/list-point-empty.js';
 import PointPresenter from './point-presenter.js';
+import { sortPointByTime, sortPointByPrice } from '../utils/point.js';
+import { SORT_TYPE } from '../const.js';
 import { render } from '../framework/render.js';
 import { updateDataItem } from '../utils/common.js';
 
 export default class contentPresenter {
   #tripList = new TripEvensListView();
   #noPointComponent = new NoPointView();
-  #sortContentComponent = new SortContentView();
+  #sortPointView = null;
 
   #contentContainer = null;
   #pointModel = null;
-  #dataPoints = null;
+  #dataPoints = [];
+  #sourcedDataPoints = [];
+  #currentTypeSort = SORT_TYPE.DAY;
 
   #pointPresenters = new Map();
 
@@ -23,6 +27,8 @@ export default class contentPresenter {
 
   init() {
     this.#dataPoints = [...this.#pointModel.points];
+    this.#sourcedDataPoints = [...this.#pointModel.points];
+
     this.#renderContents();
   }
 
@@ -36,22 +42,31 @@ export default class contentPresenter {
       return;
     }
 
-    render(this.#sortContentComponent, this.#contentContainer);
+    this.#renderSortPoints();
     render(this.#tripList, this.#contentContainer);
     this.#renderPoints();
   }
 
   #renderPoints() {
     for (const dataPoint of this.#dataPoints) {
-      const pointView = new PointPresenter(this.#tripList.element, this.#pointModel, this.#handlerPointChange, this.#handlerModeChange);
-      pointView.init(dataPoint);
+      const pointPresenter = new PointPresenter(this.#tripList.element, this.#pointModel, this.#handlerPointChange, this.#handlerModeChange);
+      pointPresenter.init(dataPoint);
 
-      this.#pointPresenters.set(dataPoint.id, pointView);
+      this.#pointPresenters.set(dataPoint.id, pointPresenter);
     }
+  }
+
+  #renderSortPoints() {
+    this.#sortPointView = new SortPointView(
+      this.#handlerSortTypePoints
+    );
+
+    render(this.#sortPointView, this.#contentContainer);
   }
 
   #handlerPointChange = (updatePoint) => {
     this.#dataPoints = updateDataItem(this.#dataPoints, updatePoint);
+    this.#sourcedDataPoints = updateDataItem(this.#sourcedDataPoints, updatePoint);
     this.#pointPresenters.get(updatePoint.id).init(updatePoint);
   };
 
@@ -59,11 +74,36 @@ export default class contentPresenter {
     this.#pointPresenters.forEach((presenter) => presenter.resetView());
   };
 
+  #sortPoint(sortType) {
+    switch (sortType) {
+      case `${SORT_TYPE.TIME}`:
+        this.#dataPoints.sort(sortPointByTime);
+        break;
+      case `${SORT_TYPE.PRICE}`:
+        this.#dataPoints.sort(sortPointByPrice);
+        break;
+      case `${SORT_TYPE.DAY}`:
+        this.#dataPoints = [...this.#sourcedDataPoints];
+        break;
+    }
 
-  #clearPoints() {
-    this.#pointPresenters.forEach((presenter) => presenter.destroy);
-    this.#pointPresenters.clear();
+    this.#currentTypeSort = sortType;
   }
+
+  #handlerSortTypePoints = (sortType) => {
+    if (this.#currentTypeSort === sortType) {
+      return;
+    }
+    console.log('rr');
+    this.#sortPoint(sortType);
+    this.#clearPoints();
+    this.#renderPoints();
+  };
+
+  #clearPoints = () => {
+    this.#pointPresenters.forEach((presenter) => presenter.destroy());
+    this.#pointPresenters.clear();
+  };
 
 
 }

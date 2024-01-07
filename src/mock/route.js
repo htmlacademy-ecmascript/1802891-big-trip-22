@@ -3,7 +3,6 @@ import { nanoid } from 'nanoid';
 
 const mockOrders = [
   {
-    id: 1,
     typePoints: 'taxi',
     title: 'Geneva',
     startDate: new Date('2023-09-11T10:30:00Z'),
