@@ -1,6 +1,5 @@
-import { humanizeOrderData } from '../utils/date.js';
-import { TYPE_ROUTES, YEAR_MONTH_DAY } from '../const.js';
-import AbstractView from '../framework/view/abstract-view.js';
+import { TYPE_ROUTES } from '../const.js';
+import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 
 function listType() {
   return `
@@ -16,7 +15,7 @@ function listType() {
 `;
 }
 
-function createTemplateOffers(offer) {
+function createTemplateOffer(offer) {
   return `
   <div class="event__offer-selector">
     <input class="event__offer-checkbox  visually-hidden" id="event-offer-luggage-${offer.id}" type="checkbox" name="event-offer-luggage">
@@ -28,11 +27,17 @@ function createTemplateOffers(offer) {
   </div>`;
 }
 
-function createListEvents(point, checkedOffers, offers, destinations) {
-  const { title, startData, endData, price } = point;
-  const { description, pictures } = destinations;
-  const sData = humanizeOrderData(startData, YEAR_MONTH_DAY);
-  const eData = humanizeOrderData(endData, YEAR_MONTH_DAY);
+function createPicturesDestinationsTemplate(picture) {
+  return `img class="event__photo" src="${picture.src}" alt="${picture.description}">`;
+}
+
+function createTitleDestinationsTemplate(title, id) {
+  return `<option value="${title}" data-id="${id}">${title}</option>`;
+}
+
+function createListEvents({ typePoints, destinations, price, offersByType, allDestinations}) {
+  const selectDestinations = allDestinations.find((destination) => destination.id === destinations);
+  const selectType = offersByType.find((offer) => offer.type === typePoints ? offer : '');
   return `
     <li class="trip-events__item">
       <form class="event event--edit" action="#" method="post">
@@ -40,7 +45,7 @@ function createListEvents(point, checkedOffers, offers, destinations) {
           <div class="event__type-wrapper">
             <label class="event__type  event__type-btn" for="event-type-toggle-1">
               <span class="visually-hidden">Choose event type</span>
-              <img class="event__type-icon" width="17" height="17" src="img/icons/bus.png" alt="Event type icon">
+              <img class="event__type-icon" width="17" height="17" src="img/icons/${typePoints.toLowerCase()}" alt="Event type icon">
             </label>
             <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox">
 
@@ -51,22 +56,20 @@ function createListEvents(point, checkedOffers, offers, destinations) {
 
           <div class="event__field-group  event__field-group--destination">
             <label class="event__label  event__type-output" for="event-destination-1">
-              Bus
+              ${typePoints}
             </label>
-            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${title}" list="destination-list-1">
+            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="" list="destination-list-1">
             <datalist id="destination-list-1">
-              <option value="Amsterdam"></option>
-              <option value="Geneva"></option>
-              <option value="Chamonix"></option>
+              ${allDestinations.map((destination) => createTitleDestinationsTemplate(destination.name, destination.id)).join('')}
             </datalist>
           </div>
 
           <div class="event__field-group  event__field-group--time">
             <label class="visually-hidden" for="event-start-time-1">From</label>
-            <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${sData}">
+            <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="">
             &mdash;
             <label class="visually-hidden" for="event-end-time-1">To</label>
-            <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${eData}">
+            <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="">
           </div>
 
           <div class="event__field-group  event__field-group--price">
@@ -86,20 +89,20 @@ function createListEvents(point, checkedOffers, offers, destinations) {
             <h3 class="event__section-title  event__section-title--offers">Offers</h3>
 
             <div class="event__available-offers">
-              ${offers.offers.map((offer) => createTemplateOffers(offer, checkedOffers)).join('')}
+            ${selectType.offers.map((offer) => createTemplateOffer(offer)).join('')}
             </div>
           </section>
-
+          ${destinations.description !== null ? `
           <section class="event__section  event__section--destination">
             <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-            <p class="event__destination-description">${description}</p>
+            <p class="event__destination-description">${selectDestinations.description}</p>
 
             <div class="event__photos-container">
               <div class="event__photos-tape">
-                <img class="event__photo" src="${pictures[0].src}" alt="Event photo">
+                ${selectDestinations.pictures.map((picture) => createPicturesDestinationsTemplate(picture))}
               </div>
             </div>
-          </section>
+          </section>` : ''}
         </section>
       </form>
   </li>
@@ -107,21 +110,68 @@ function createListEvents(point, checkedOffers, offers, destinations) {
 }
 
 
-export default class TripEventsListView extends AbstractView{
-  #point = null;
-  #checkedOffers = null;
+export default class TripEventsListView extends AbstractStatefulView{
   #destinations = null;
-  #offers = null;
+  #selectDestination = null;
+  #handlerCloseFormClick = null;
 
-  constructor({point, checkedOffers, offers, destinations}) {
+  constructor({point, offers, destinations, onFormSubmit }) {
     super();
-    this.#point = point;
-    this.#checkedOffers = checkedOffers;
-    this.#offers = offers;
     this.#destinations = destinations;
+    this._setState(TripEventsListView.parsePointToState(point, offers, destinations));
+    this.#handlerCloseFormClick = onFormSubmit;
+
+    this._restoreHandlers();
   }
 
   get template() {
-    return createListEvents(this.#point, this.#checkedOffers, this.#offers, this.#destinations);
+    return createListEvents(this._state);
   }
+
+  _restoreHandlers() {
+    this.element.querySelector('.event__save-btn').addEventListener('click', this.#onEditPointSubmit);
+    this.element.addEventListener('click', this.#onSelectTypePointClick);
+    this.element.querySelector('.event__input').addEventListener('change', this.#onSelectDestinationsClick);
+  }
+
+  static parsePointToState(point, offers, destinations) {
+    return {...point,
+      offersByType: offers,
+      allDestinations: destinations,
+    };
+  }
+
+  static parseStateToPoint(state) {
+    const point = {...state};
+
+    delete point.checkedOffers;
+    delete point.offersByType;
+    delete point.destinations;
+
+    return point;
+  }
+
+  #selectingDestinations(name) {
+    this.#selectDestination = this.#destinations.find((destination) => destination.name === name);
+  }
+
+  #onSelectTypePointClick = (evt) => {
+    if (evt.target.closest('.event__type-label')) {
+      this.updateElement({
+        typePoints: this._state.typePoints = evt.target.textContent
+      });
+    }
+  };
+
+  #onSelectDestinationsClick = (evt) => {
+    this.#selectingDestinations(evt.target.value);
+    this.updateElement({
+      destinations: this._state.destinations = this.#selectDestination.id
+    });
+  };
+
+  #onEditPointSubmit = (evt) => {
+    evt.preventDefault();
+    this.#handlerCloseFormClick();
+  };
 }

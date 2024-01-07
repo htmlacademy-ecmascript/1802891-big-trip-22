@@ -5,8 +5,8 @@ const mockOrders = [
   {
     typePoints: 'taxi',
     title: 'Geneva',
-    startDate: new Date('2023-09-11T10:30:00Z'),
-    endDate: new Date('2023-09-11T11:00:00.00Z'),
+    startDate: new Date('2023-09-11T10:30:00'),
+    endDate: new Date('2023-09-11T11:00:00'),
     price: 145,
     destinations: '1',
     offers: [

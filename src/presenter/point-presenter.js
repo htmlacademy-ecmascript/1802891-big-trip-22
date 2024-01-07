@@ -15,7 +15,7 @@ export default class RenderPoint {
   #pointModel = null;
 
   #handlerModeChange = null;
-  #handlerPointChange = null;
+  #handlerPointUpdate = null;
 
   #pointData = null;
   #mode = Mode.DEFAULT;
@@ -23,7 +23,7 @@ export default class RenderPoint {
   constructor(containerListPoint, pointModel, onDateChange, onModeChange) {
     this.#containerPoint = containerListPoint;
     this.#pointModel = pointModel;
-    this.#handlerPointChange = onDateChange;
+    this.#handlerPointUpdate = onDateChange;
     this.#handlerModeChange = onModeChange;
   }
 
@@ -33,21 +33,13 @@ export default class RenderPoint {
     const prevPointView = this.#pointView;
     const prevPointEditView = this.#pointEditView;
 
-    const escKeyDownHandler = (evt) => {
-      if (evt.key === 'Escape') {
-        evt.preventDefault();
-        this.#handlerSwapPointToEditClick();
-        document.removeEventListener('keydown', escKeyDownHandler);
-      }
-    };
-
     this.#pointView = new PointView({
       point: point,
       checkedOffers: [...this.#pointModel.getOfferById(point.typePoints, point.offers)],
       destinations: this.#pointModel.getDestinationsById(point.destinations),
       onEditPointClick: () => {
         this.#handlerSwapEditToPointClick();
-        document.addEventListener('keydown', escKeyDownHandler);
+        document.addEventListener('keydown', this.#escKeyDownHandler);
       },
       onFavoriteChangeClick: this.#handlerChangeFavoriteClick,
     });
@@ -55,12 +47,10 @@ export default class RenderPoint {
     this.#pointEditView = new EditPointView({
       point: point,
       checkedOffers: [...this.#pointModel.getOfferById(point.typePoints, point.offers)],
-      offers: this.#pointModel.getOfferByType(point.typePoints),
-      destinations: this.#pointModel.getDestinationsById(point.destinations),
-      onFormSubmit: () => {
-        this.#handlerSwapPointToEditClick();
-        document.addEventListener('keydown', escKeyDownHandler);
-      },
+      offers: [...this.#pointModel.offers],
+      destinations: this.#pointModel.destinations,
+      onFormSubmit: this.#handlerFormSubmit,
+      onCloseEditClick: this.#handlerCloseEdit,
     });
 
     if (prevPointView === null || prevPointEditView === null) {
@@ -84,6 +74,7 @@ export default class RenderPoint {
 
   resetView() {
     if (this.#mode !== Mode.DEFAULT) {
+      this.#pointEditView.reset(this.#pointData);
       this.#replaceEditFormToPoint();
     }
   }
@@ -92,12 +83,35 @@ export default class RenderPoint {
     replace(this.#pointEditView, this.#pointView);
     this.#handlerModeChange();
     this.#mode = Mode.EDITING;
+    document.removeEventListener('keydown', this.#escKeyDownHandler);
   }
 
   #replaceEditFormToPoint() {
     replace(this.#pointView, this.#pointEditView);
     this.#mode = Mode.DEFAULT;
+    document.removeEventListener('keydown', this.#escKeyDownHandler);
   }
+
+  #escKeyDownHandler = (evt) => {
+    if (evt.key === 'Escape') {
+      evt.preventDefault();
+      this.#handlerSwapPointToEditClick();
+      this.#pointEditView.reset(this.#pointData);
+      document.removeEventListener('keydown', this.#escKeyDownHandler);
+    }
+  };
+
+  //handlers
+  #handlerFormSubmit = (point) => {
+    this.#handlerSwapPointToEditClick();
+    document.addEventListener('keydown', this.#escKeyDownHandler);
+    //this.#handlerPointUpdate(point);
+  };
+
+  #handlerCloseEdit = () => {
+    this.#handlerSwapPointToEditClick();
+    document.addEventListener('keydown', this.#escKeyDownHandler);
+  };
 
   #handlerSwapEditToPointClick = () => {
     this.#replacePointToEditPoint();
@@ -108,7 +122,7 @@ export default class RenderPoint {
   };
 
   #handlerChangeFavoriteClick = () => {
-    this.#handlerPointChange({...this.#pointData, isFavourite: !this.#pointData.isFavourite});
+    this.#handlerPointUpdate({...this.#pointData, isFavourite: !this.#pointData.isFavourite});
   };
 
   destroy() {

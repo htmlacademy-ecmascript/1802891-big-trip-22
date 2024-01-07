@@ -6,6 +6,7 @@ import { sortPointByTime, sortPointByPrice } from '../utils/point.js';
 import { SORT_TYPE } from '../const.js';
 import { render } from '../framework/render.js';
 import { updateDataItem } from '../utils/common.js';
+import HeaderPresenter from './header-presenter.js';
 
 export default class contentPresenter {
   #tripList = new TripEvensListView();
@@ -14,13 +15,14 @@ export default class contentPresenter {
 
   #contentContainer = null;
   #pointModel = null;
+  #headerPresenter = null;
   #dataPoints = [];
   #sourcedDataPoints = [];
   #currentTypeSort = SORT_TYPE.DAY;
 
   #pointPresenters = new Map();
 
-  constructor({contentContainer, pointModel}) {
+  constructor({contentContainer, pointModel }) {
     this.#contentContainer = contentContainer;
     this.#pointModel = pointModel;
   }
@@ -28,7 +30,7 @@ export default class contentPresenter {
   init() {
     this.#dataPoints = [...this.#pointModel.points];
     this.#sourcedDataPoints = [...this.#pointModel.points];
-
+    this.#renderHeader();
     this.#renderContents();
   }
 
@@ -46,6 +48,12 @@ export default class contentPresenter {
     render(this.#tripList, this.#contentContainer);
     this.#renderPoints();
   }
+
+  #renderHeader() {
+    const headerPresenter = new HeaderPresenter(this.#pointModel);
+    headerPresenter.init(this.#dataPoints[0]);
+  }
+
 
   #renderPoints() {
     for (const dataPoint of this.#dataPoints) {
@@ -94,7 +102,6 @@ export default class contentPresenter {
     if (this.#currentTypeSort === sortType) {
       return;
     }
-    console.log('rr');
     this.#sortPoint(sortType);
     this.#clearPoints();
     this.#renderPoints();

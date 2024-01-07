@@ -23,7 +23,7 @@ export const mockOffers = [
         price: '5',
       },
       {
-        id:'14',
+        id:'15',
         title: 'Travel by train',
         price: '5',
       }
@@ -41,7 +41,12 @@ export const mockOffers = [
         id:'22',
         title: 'Add luggage',
         price: '50',
-      }
+      },
+      {
+        id:'23',
+        title: 'Choose seats',
+        price: '5',
+      },
     ]
   },
   {
@@ -56,6 +61,11 @@ export const mockOffers = [
         id:'32',
         title: 'Add luggage',
         price: '50',
+      },
+      {
+        id:'33',
+        title: 'Travel by train',
+        price: '5',
       }
     ]
   },
