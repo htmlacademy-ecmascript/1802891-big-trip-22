@@ -323,7 +323,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   mockOffers: () => (/* binding */ mockOffers)
 /* harmony export */ });
 const mockOffers = [{
-  type: 'taxi',
+  type: 'Taxi',
   offers: [{
     id: '11',
     title: 'Add meal',
@@ -346,7 +346,7 @@ const mockOffers = [{
     price: '5'
   }]
 }, {
-  type: 'bus',
+  type: 'Bus',
   offers: [{
     id: '21',
     title: 'Add meal',
@@ -361,7 +361,7 @@ const mockOffers = [{
     price: '5'
   }]
 }, {
-  type: 'ship',
+  type: 'Ship',
   offers: [{
     id: '31',
     title: 'Add meal',
@@ -376,7 +376,7 @@ const mockOffers = [{
     price: '5'
   }]
 }, {
-  type: 'sightseeing',
+  type: 'Sightseeing',
   offers: []
 }];
 
@@ -398,7 +398,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const mockOrders = [{
-  typePoints: 'taxi',
+  typePoints: 'Taxi',
   title: 'Geneva',
   startDate: new Date('2023-09-11T10:30:00'),
   endDate: new Date('2023-09-11T11:00:00'),
@@ -407,7 +407,7 @@ const mockOrders = [{
   offers: ['11', '12', '13'],
   isFavourite: true
 }, {
-  typePoints: 'bus',
+  typePoints: 'Bus',
   title: 'Amsterdam',
   startDate: new Date('2023-12-12T10:30'),
   endDate: new Date('2023-12-12T12:00'),
@@ -416,7 +416,7 @@ const mockOrders = [{
   offers: ['21', '22'],
   isFavourite: false
 }, {
-  typePoints: 'sightseeing',
+  typePoints: 'Sightseeing',
   title: 'Moscow',
   startDate: new Date('2023-12-12T23:30'),
   endDate: new Date('2023-12-12T23:40'),
@@ -517,10 +517,11 @@ __webpack_require__.r(__webpack_exports__);
 class contentPresenter {
   #tripList = new _view_trip_list_js__WEBPACK_IMPORTED_MODULE_0__["default"]();
   #noPointComponent = new _view_list_point_empty_js__WEBPACK_IMPORTED_MODULE_2__["default"]();
+  #pointPresenter = null;
+  #headerPresenter = null;
   #sortPointView = null;
   #contentContainer = null;
   #pointModel = null;
-  #headerPresenter = null;
   #dataPoints = [];
   #sourcedDataPoints = [];
   #currentTypeSort = _const_js__WEBPACK_IMPORTED_MODULE_5__.SORT_TYPE.DAY;
@@ -551,14 +552,14 @@ class contentPresenter {
     this.#renderPoints();
   }
   #renderHeader() {
-    const headerPresenter = new _header_presenter_js__WEBPACK_IMPORTED_MODULE_8__["default"](this.#pointModel);
-    headerPresenter.init(this.#dataPoints[0]);
+    this.#headerPresenter = new _header_presenter_js__WEBPACK_IMPORTED_MODULE_8__["default"](this.#handlerOpenAddPoint);
+    this.#headerPresenter.init();
   }
   #renderPoints() {
     for (const dataPoint of this.#dataPoints) {
-      const pointPresenter = new _point_presenter_js__WEBPACK_IMPORTED_MODULE_3__["default"](this.#tripList.element, this.#pointModel, this.#handlerPointChange, this.#handlerModeChange);
-      pointPresenter.init(dataPoint);
-      this.#pointPresenters.set(dataPoint.id, pointPresenter);
+      this.#pointPresenter = new _point_presenter_js__WEBPACK_IMPORTED_MODULE_3__["default"](this.#tripList.element, this.#pointModel, this.#handlerPointChange, this.#handlerModeChange);
+      this.#pointPresenter.init(dataPoint);
+      this.#pointPresenters.set(dataPoint.id, this.#pointPresenter);
     }
   }
   #renderSortPoints() {
@@ -595,6 +596,9 @@ class contentPresenter {
     this.#clearPoints();
     this.#renderPoints();
   };
+  #handlerOpenAddPoint = () => {
+    this.#pointPresenter.renderPointAdd();
+  };
   #clearPoints = () => {
     this.#pointPresenters.forEach(presenter => presenter.destroy());
     this.#pointPresenters.clear();
@@ -621,9 +625,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _view_info_container_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../view/info-container.js */ "./src/view/info-container.js");
 /* harmony import */ var _view_info_wrapper_content_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../view/info-wrapper-content.js */ "./src/view/info-wrapper-content.js");
 /* harmony import */ var _view_button_add_point_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../view/button-add-point.js */ "./src/view/button-add-point.js");
-/* harmony import */ var _view_add_point_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../view/add-point.js */ "./src/view/add-point.js");
-/* harmony import */ var _framework_render_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../framework/render.js */ "./src/framework/render.js");
-
+/* harmony import */ var _framework_render_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../framework/render.js */ "./src/framework/render.js");
 
 
 
@@ -635,33 +637,25 @@ __webpack_require__.r(__webpack_exports__);
 class HeaderPresenter {
   #tripContainer = new _view_info_container_js__WEBPACK_IMPORTED_MODULE_4__["default"]();
   #tripWrapperContent = new _view_info_wrapper_content_js__WEBPACK_IMPORTED_MODULE_5__["default"]();
-  #addPointView = null;
-  #pointModel = null;
+  #handlerOpenPointClick = null;
+  #handlerClosePointClick = null;
   #headerContainer = null;
   #containerFilters = null;
-  constructor(pointModel) {
-    this.#pointModel = pointModel;
+  constructor(onOpenPointClick, onClosePointClick) {
+    this.#handlerOpenPointClick = onOpenPointClick;
+    this.#handlerClosePointClick = onClosePointClick;
   }
-  init(point) {
-    this.#containerFilters = document.querySelector('.trip-controls__filters');
+  init() {
     this.#headerContainer = document.querySelector('.trip-main');
-    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_8__.render)(this.#tripContainer, this.#headerContainer, _framework_render_js__WEBPACK_IMPORTED_MODULE_8__.RenderPosition.AFTERBEGIN);
-    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_8__.render)(new _view_info_price_header_js__WEBPACK_IMPORTED_MODULE_3__["default"](), this.#tripContainer.element);
-    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_8__.render)(this.#tripWrapperContent, this.#tripContainer.element, _framework_render_js__WEBPACK_IMPORTED_MODULE_8__.RenderPosition.AFTERBEGIN);
-    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_8__.render)(new _view_info_title_header_js__WEBPACK_IMPORTED_MODULE_2__["default"](), this.#tripWrapperContent.element);
-    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_8__.render)(new _view_info_data_header_js__WEBPACK_IMPORTED_MODULE_1__["default"](), this.#tripWrapperContent.element);
-    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_8__.render)(new _view_filter_main_js__WEBPACK_IMPORTED_MODULE_0__["default"](), this.#containerFilters);
-    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_8__.render)(new _view_button_add_point_js__WEBPACK_IMPORTED_MODULE_6__["default"](), this.#headerContainer);
-    this.#addPointView = new _view_add_point_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
-      point: point,
-      offers: [...this.#pointModel.offers],
-      destinations: this.#pointModel.destinations
-      //onFormSubmit: this.#handlerFormSubmit,
-    });
+    this.#containerFilters = document.querySelector('.trip-controls__filters');
+    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_7__.render)(this.#tripContainer, this.#headerContainer, _framework_render_js__WEBPACK_IMPORTED_MODULE_7__.RenderPosition.AFTERBEGIN);
+    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_7__.render)(new _view_info_price_header_js__WEBPACK_IMPORTED_MODULE_3__["default"](), this.#tripContainer.element);
+    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_7__.render)(this.#tripWrapperContent, this.#tripContainer.element, _framework_render_js__WEBPACK_IMPORTED_MODULE_7__.RenderPosition.AFTERBEGIN);
+    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_7__.render)(new _view_info_title_header_js__WEBPACK_IMPORTED_MODULE_2__["default"](), this.#tripWrapperContent.element);
+    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_7__.render)(new _view_info_data_header_js__WEBPACK_IMPORTED_MODULE_1__["default"](), this.#tripWrapperContent.element);
+    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_7__.render)(new _view_filter_main_js__WEBPACK_IMPORTED_MODULE_0__["default"](), this.#containerFilters);
+    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_7__.render)(new _view_button_add_point_js__WEBPACK_IMPORTED_MODULE_6__["default"](this.#handlerOpenPointClick), this.#headerContainer);
   }
-  #handlerOpenAddPointClick = addView => {
-    //render(this.#addPointView);
-  };
 }
 
 /***/ }),
@@ -679,7 +673,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _view_edit_point_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../view/edit-point.js */ "./src/view/edit-point.js");
 /* harmony import */ var _view_point_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../view/point.js */ "./src/view/point.js");
-/* harmony import */ var _framework_render_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../framework/render.js */ "./src/framework/render.js");
+/* harmony import */ var _view_add_point_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../view/add-point.js */ "./src/view/add-point.js");
+/* harmony import */ var _framework_render_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../framework/render.js */ "./src/framework/render.js");
+
 
 
 
@@ -691,6 +687,7 @@ class RenderPoint {
   #containerPoint = null;
   #pointView = null;
   #pointEditView = null;
+  #addPointView = null;
   #pointModel = null;
   #handlerModeChange = null;
   #handlerPointUpdate = null;
@@ -724,19 +721,25 @@ class RenderPoint {
       onFormSubmit: this.#handlerFormSubmit,
       onCloseEditClick: this.#handlerCloseEdit
     });
+    this.#addPointView = new _view_add_point_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
+      offers: [...this.#pointModel.offers],
+      destinations: this.#pointModel.destinations,
+      handlerClosePointClick: this.#onClosePointAddClick
+      //onFormSubmit: this.#handlerFormSubmit,
+    });
     if (prevPointView === null || prevPointEditView === null) {
-      (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_2__.render)(this.#pointView, this.#containerPoint);
+      (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_3__.render)(this.#pointView, this.#containerPoint);
       return;
     }
     if (this.#mode === Mode.DEFAULT) {
-      (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_2__.replace)(this.#pointView, prevPointView);
+      (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_3__.replace)(this.#pointView, prevPointView);
     }
     if (this.#mode === Mode.EDITING) {
-      (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_2__.replace)(this.#pointEditView, prevPointEditView);
+      (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_3__.replace)(this.#pointEditView, prevPointEditView);
     }
-    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_2__.remove)(prevPointView);
-    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_2__.remove)(prevPointEditView);
-    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_2__.render)(this.#pointView, this.#containerPoint);
+    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_3__.remove)(prevPointView);
+    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_3__.remove)(prevPointEditView);
+    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_3__.render)(this.#pointView, this.#containerPoint);
   }
   resetView() {
     if (this.#mode !== Mode.DEFAULT) {
@@ -745,13 +748,13 @@ class RenderPoint {
     }
   }
   #replacePointToEditPoint() {
-    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_2__.replace)(this.#pointEditView, this.#pointView);
+    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_3__.replace)(this.#pointEditView, this.#pointView);
     this.#handlerModeChange();
     this.#mode = Mode.EDITING;
     document.removeEventListener('keydown', this.#escKeyDownHandler);
   }
   #replaceEditFormToPoint() {
-    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_2__.replace)(this.#pointView, this.#pointEditView);
+    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_3__.replace)(this.#pointView, this.#pointEditView);
     this.#mode = Mode.DEFAULT;
     document.removeEventListener('keydown', this.#escKeyDownHandler);
   }
@@ -787,9 +790,16 @@ class RenderPoint {
     });
   };
   destroy() {
-    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_2__.remove)(this.#pointView);
-    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_2__.remove)(this.#pointEditView);
+    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_3__.remove)(this.#pointView);
+    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_3__.remove)(this.#pointEditView);
   }
+  renderPointAdd = () => {
+    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_3__.render)(this.#addPointView, this.#containerPoint, _framework_render_js__WEBPACK_IMPORTED_MODULE_3__.RenderPosition.AFTERBEGIN);
+  };
+  #onClosePointAddClick = () => {
+    (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_3__.remove)(this.#addPointView);
+    //this.#addPointView.reset();
+  };
 }
 
 /***/ }),
@@ -913,22 +923,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ TripEventsListView)
 /* harmony export */ });
-/* harmony import */ var _const_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../const.js */ "./src/const.js");
-/* harmony import */ var _framework_view_abstract_stateful_view_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../framework/view/abstract-stateful-view.js */ "./src/framework/view/abstract-stateful-view.js");
+/* harmony import */ var _framework_view_abstract_stateful_view_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../framework/view/abstract-stateful-view.js */ "./src/framework/view/abstract-stateful-view.js");
 
-
-function listType() {
+function listType(type) {
   return `
   <fieldset class="event__type-group">
     <legend class="visually-hidden">Event type</legend>
-    ${_const_js__WEBPACK_IMPORTED_MODULE_0__.TYPE_ROUTES.map(type => `
       <div class="event__type-item">
         <input id="event-type-${type.toLowerCase()}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${type.toLowerCase()}">
         <label class="event__type-label  event__type-label--${type.toLowerCase()}" for="event-type-${type.toLowerCase()}-1">${type}</label>
       </div>
-    `).join('')}
-  </fieldset>
-`;
+  </fieldset>`;
 }
 function createTemplateOffer(offer) {
   return `
@@ -942,7 +947,7 @@ function createTemplateOffer(offer) {
   </div>`;
 }
 function createPicturesDestinationsTemplate(picture) {
-  return `img class="event__photo" src="${picture.src}" alt="${picture.description}">`;
+  return `<img class="event__photo" src="${picture.src}" alt="${picture.description}">`;
 }
 function createTitleDestinationsTemplate(title, id) {
   return `<option value="${title}" data-id="${id}">${title}</option>`;
@@ -950,7 +955,6 @@ function createTitleDestinationsTemplate(title, id) {
 function createListEvents({
   typePoints,
   destinations,
-  price,
   offersByType,
   allDestinations
 }) {
@@ -963,20 +967,20 @@ function createListEvents({
           <div class="event__type-wrapper">
             <label class="event__type  event__type-btn" for="event-type-toggle-1">
               <span class="visually-hidden">Choose event type</span>
-              <img class="event__type-icon" width="17" height="17" src="img/icons/${typePoints.toLowerCase()}" alt="Event type icon">
+              <img class="event__type-icon" width="17" height="17" src="img/icons/${typePoints !== null ? typePoints.toLowerCase() : 'Taxi'}.png" alt="Event type icon">
             </label>
             <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox">
 
             <div class="event__type-list">
-                ${listType()}
+              ${offersByType.map(offerType => listType(offerType.type)).join('')}
             </div>
           </div>
 
           <div class="event__field-group  event__field-group--destination">
             <label class="event__label  event__type-output" for="event-destination-1">
-              ${typePoints}
+              ${typePoints !== null ? typePoints : 'Taxi'}
             </label>
-            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="" list="destination-list-1">
+            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destinations !== null ? selectDestinations.name : ''}" list="destination-list-1">
             <datalist id="destination-list-1">
               ${allDestinations.map(destination => createTitleDestinationsTemplate(destination.name, destination.id)).join('')}
             </datalist>
@@ -995,7 +999,7 @@ function createListEvents({
               <span class="visually-hidden">Price</span>
               &euro;
             </label>
-            <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value=" ${price}">
+            <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="">
           </div>
 
           <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
@@ -1003,14 +1007,15 @@ function createListEvents({
         </header>
 
         <section class="event__details">
-            <section class="event__section  event__section--offers">
-            <h3 class="event__section-title  event__section-title--offers">Offers</h3>
+            ${typePoints !== null ? `
+              <section class="event__section  event__section--offers">
+              <h3 class="event__section-title  event__section-title--offers">Offers</h3>
 
-            <div class="event__available-offers">
-            ${selectType.offers.map(offer => createTemplateOffer(offer)).join('')}
-            </div>
+              <div class="event__available-offers">
+                ${selectType.offers.map(offer => createTemplateOffer(offer)).join('')}
+              </div>` : ''}
           </section>
-          ${destinations.description !== null ? `
+          ${destinations !== null ? `
           <section class="event__section  event__section--destination">
             <h3 class="event__section-title  event__section-title--destination">Destination</h3>
             <p class="event__destination-description">${selectDestinations.description}</p>
@@ -1026,19 +1031,21 @@ function createListEvents({
   </li>
   `;
 }
-class TripEventsListView extends _framework_view_abstract_stateful_view_js__WEBPACK_IMPORTED_MODULE_1__["default"] {
+class TripEventsListView extends _framework_view_abstract_stateful_view_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
   #destinations = null;
   #selectDestination = null;
   #handlerCloseFormClick = null;
+  #handlerClosePointClick = null;
   constructor({
-    point,
     offers,
     destinations,
+    handlerClosePointClick,
     onFormSubmit
   }) {
     super();
     this.#destinations = destinations;
-    this._setState(TripEventsListView.parsePointToState(point, offers, destinations));
+    this._setState(TripEventsListView.parsePointToState(offers, destinations));
+    this.#handlerClosePointClick = handlerClosePointClick;
     this.#handlerCloseFormClick = onFormSubmit;
     this._restoreHandlers();
   }
@@ -1049,10 +1056,16 @@ class TripEventsListView extends _framework_view_abstract_stateful_view_js__WEBP
     this.element.querySelector('.event__save-btn').addEventListener('click', this.#onEditPointSubmit);
     this.element.addEventListener('click', this.#onSelectTypePointClick);
     this.element.querySelector('.event__input').addEventListener('change', this.#onSelectDestinationsClick);
+    this.element.querySelector('.event__reset-btn').addEventListener('click', this.#onClosePointClick);
   }
-  static parsePointToState(point, offers, destinations) {
+  static parsePointToState(offers, destinations) {
     return {
-      ...point,
+      typePoints: null,
+      title: null,
+      startDate: null,
+      endDate: null,
+      price: null,
+      destinations: null,
       offersByType: offers,
       allDestinations: destinations
     };
@@ -1065,6 +1078,9 @@ class TripEventsListView extends _framework_view_abstract_stateful_view_js__WEBP
     delete point.offersByType;
     delete point.destinations;
     return point;
+  }
+  reset(point) {
+    this.updateElement(TripEventsListView.parsePointToState(point));
   }
   #selectingDestinations(name) {
     this.#selectDestination = this.#destinations.find(destination => destination.name === name);
@@ -1085,6 +1101,10 @@ class TripEventsListView extends _framework_view_abstract_stateful_view_js__WEBP
   #onEditPointSubmit = evt => {
     evt.preventDefault();
     this.#handlerCloseFormClick();
+  };
+  #onClosePointClick = evt => {
+    evt.preventDefault();
+    this.#handlerClosePointClick();
   };
 }
 
@@ -1111,22 +1131,19 @@ function addPointButtonTemplate() {
   `;
 }
 class ButtonAddPointView extends _framework_view_abstract_view__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  // #handClick = null;
-
-  // constructor({onClick}) {
-  //   super();
-  //   this.#handClick = onClick;
-  //   this.element.addEventListener('click', this.#clickButton);
-  // }
-
+  #handlerOpenPointClick = null;
+  constructor(onButtonClick) {
+    super();
+    this.#handlerOpenPointClick = onButtonClick;
+    this.element.addEventListener('click', this.#clickButton);
+  }
   get template() {
     return addPointButtonTemplate();
   }
-
-  // #clickButton = (evt) => {
-  //   evt.preventDefault();
-  //   this.#handClick();
-  // };
+  #clickButton = evt => {
+    evt.preventDefault();
+    this.#handlerOpenPointClick();
+  };
 }
 
 /***/ }),
@@ -1148,24 +1165,21 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-function listType() {
+function listType(type) {
   return `
   <fieldset class="event__type-group">
     <legend class="visually-hidden">Event type</legend>
-    ${_const_js__WEBPACK_IMPORTED_MODULE_2__.TYPE_ROUTES.map(type => `
       <div class="event__type-item">
         <input id="event-type-${type.toLowerCase()}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${type.toLowerCase()}">
         <label class="event__type-label  event__type-label--${type.toLowerCase()}" for="event-type-${type.toLowerCase()}-1">${type}</label>
       </div>
-    `).join('')}
-  </fieldset>
-`;
+  </fieldset>`;
 }
 function createTemplateOffer(offer, checkedOffers) {
   const checkedOffer = checkedOffers.map(allOffer => allOffer.id === offer.id);
   return `
   <div class="event__offer-selector">
-    <input class="event__offer-checkbox  visually-hidden" id="event-offer-luggage-${offer.id}" type="checkbox" name="event-offer-luggage" ${checkedOffer.map(isOffer => isOffer === true ? 'checked ' : '').join('')}>
+    <input class="event__offer-checkbox  visually-hidden" id="event-offer-${offer.title}-${offer.id}" type="checkbox" name="event-offer-luggage" ${checkedOffer.map(isOffer => isOffer === true ? 'checked ' : '').join('')}>
     <label class="event__offer-label" for="event-offer-luggage-${offer.id}">
       <span class="event__offer-title">${offer.title}</span>
       &plus;&euro;&nbsp;
@@ -1202,7 +1216,7 @@ function createPointEditComponent({
            <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox">
 
            <div class="event__type-list">
-            ${listType()}
+            ${offersByType.map(offerType => listType(offerType.type)).join('')}
            </div>
          </div>
 
@@ -1247,7 +1261,7 @@ function createPointEditComponent({
            </div>
          </section>
 
-         ${destinations.description !== null ? `
+         ${destinations !== null ? `
           <section class="event__section  event__section--destination">
             <h3 class="event__section-title  event__section-title--destination">Destination</h3>
             <p class="event__destination-description">${selectDestinations.description}</p>
@@ -1306,7 +1320,6 @@ class EventEditView extends _framework_view_abstract_stateful_view_js__WEBPACK_I
   }
   reset(point) {
     this.updateElement(EventEditView.parsePointToState(point));
-    console.log(this._state);
   }
   #selectingDestinations(name) {
     this.#selectDestination = this.#destinations.find(destination => destination.name === name);
@@ -5135,23 +5148,18 @@ var __webpack_exports__ = {};
   \*********************/
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _presenter_content_presenter_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./presenter/content-presenter.js */ "./src/presenter/content-presenter.js");
-/* harmony import */ var _presenter_header_presenter_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./presenter/header-presenter.js */ "./src/presenter/header-presenter.js");
-/* harmony import */ var _model_points_model_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./model/points-model.js */ "./src/model/points-model.js");
-
+/* harmony import */ var _model_points_model_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./model/points-model.js */ "./src/model/points-model.js");
 
 
 const tripContent = document.querySelector('.trip-events');
-const pointModel = new _model_points_model_js__WEBPACK_IMPORTED_MODULE_2__["default"]();
+const pointModel = new _model_points_model_js__WEBPACK_IMPORTED_MODULE_1__["default"]();
 const contentPresenter = new _presenter_content_presenter_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   contentContainer: tripContent,
   pointModel
 });
-//const headerPresenter = new HeaderPresenter({headerContainer: tripMain, containerFilters, pointModel});
-
 contentPresenter.init();
-//headerPresenter.init();
 })();
 
 /******/ })()
 ;
-//# sourceMappingURL=bundle.0d2fc2c07235a68439cc.js.map
+//# sourceMappingURL=bundle.89992ae7c59bcbba6b32.js.map
