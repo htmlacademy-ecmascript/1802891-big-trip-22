@@ -5,26 +5,29 @@ import InfoPriceView from '../view/info-price-header.js';
 import InfoContainerView from '../view/info-container.js';
 import InfoWrapperContentView from '../view/info-wrapper-content.js';
 import ButtonAddPointView from '../view/button-add-point.js';
-import AddPointView from '../view/add-point.js';
+
 
 import {render, RenderPosition} from '../framework/render.js';
 
 export default class HeaderPresenter {
   #tripContainer = new InfoContainerView();
   #tripWrapperContent = new InfoWrapperContentView();
-  #addPointView = null;
 
-  #pointModel = null;
+
+  #handlerOpenPointClick = null;
+  #handlerClosePointClick = null;
+
   #headerContainer = null;
   #containerFilters = null;
 
-  constructor(pointModel) {
-    this.#pointModel = pointModel;
+  constructor(onOpenPointClick, onClosePointClick) {
+    this.#handlerOpenPointClick = onOpenPointClick;
+    this.#handlerClosePointClick = onClosePointClick;
   }
 
-  init(point) {
-    this.#containerFilters = document.querySelector('.trip-controls__filters');
+  init() {
     this.#headerContainer = document.querySelector('.trip-main');
+    this.#containerFilters = document.querySelector('.trip-controls__filters');
 
     render(this.#tripContainer, this.#headerContainer, RenderPosition.AFTERBEGIN);
     render(new InfoPriceView(), this.#tripContainer.element);
@@ -32,17 +35,6 @@ export default class HeaderPresenter {
     render(new InfoTitleView(), this.#tripWrapperContent.element);
     render(new InfoDataView(), this.#tripWrapperContent.element);
     render(new FilterView(), this.#containerFilters);
-    render(new ButtonAddPointView, this.#headerContainer);
-
-    this.#addPointView = new AddPointView({
-      point: point,
-      offers: [...this.#pointModel.offers],
-      destinations: this.#pointModel.destinations,
-      //onFormSubmit: this.#handlerFormSubmit,
-    });
+    render(new ButtonAddPointView(this.#handlerOpenPointClick), this.#headerContainer);
   }
-
-  #handlerOpenAddPointClick = (addView) => {
-    //render(this.#addPointView);
-  };
 }

@@ -11,11 +11,12 @@ import HeaderPresenter from './header-presenter.js';
 export default class contentPresenter {
   #tripList = new TripEvensListView();
   #noPointComponent = new NoPointView();
+  #pointPresenter = null;
+  #headerPresenter = null;
   #sortPointView = null;
 
   #contentContainer = null;
   #pointModel = null;
-  #headerPresenter = null;
   #dataPoints = [];
   #sourcedDataPoints = [];
   #currentTypeSort = SORT_TYPE.DAY;
@@ -50,17 +51,17 @@ export default class contentPresenter {
   }
 
   #renderHeader() {
-    const headerPresenter = new HeaderPresenter(this.#pointModel);
-    headerPresenter.init(this.#dataPoints[0]);
+    this.#headerPresenter = new HeaderPresenter(this.#handlerOpenAddPoint);
+    this.#headerPresenter.init();
   }
 
 
   #renderPoints() {
     for (const dataPoint of this.#dataPoints) {
-      const pointPresenter = new PointPresenter(this.#tripList.element, this.#pointModel, this.#handlerPointChange, this.#handlerModeChange);
-      pointPresenter.init(dataPoint);
+      this.#pointPresenter = new PointPresenter(this.#tripList.element, this.#pointModel, this.#handlerPointChange, this.#handlerModeChange);
+      this.#pointPresenter.init(dataPoint);
 
-      this.#pointPresenters.set(dataPoint.id, pointPresenter);
+      this.#pointPresenters.set(dataPoint.id, this.#pointPresenter);
     }
   }
 
@@ -105,6 +106,10 @@ export default class contentPresenter {
     this.#sortPoint(sortType);
     this.#clearPoints();
     this.#renderPoints();
+  };
+
+  #handlerOpenAddPoint = () => {
+    this.#pointPresenter.renderPointAdd();
   };
 
   #clearPoints = () => {

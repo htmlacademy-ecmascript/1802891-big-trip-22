@@ -1,6 +1,7 @@
 import EditPointView from '../view/edit-point.js';
 import PointView from '../view/point.js';
-import { render, replace, remove } from '../framework/render.js';
+import AddPointView from '../view/add-point.js';
+import { render, replace, remove, RenderPosition } from '../framework/render.js';
 
 const Mode = {
   DEFAULT: 'DEFAULT',
@@ -12,6 +13,7 @@ export default class RenderPoint {
 
   #pointView = null;
   #pointEditView = null;
+  #addPointView = null;
   #pointModel = null;
 
   #handlerModeChange = null;
@@ -51,6 +53,13 @@ export default class RenderPoint {
       destinations: this.#pointModel.destinations,
       onFormSubmit: this.#handlerFormSubmit,
       onCloseEditClick: this.#handlerCloseEdit,
+    });
+
+    this.#addPointView = new AddPointView({
+      offers: [...this.#pointModel.offers],
+      destinations: this.#pointModel.destinations,
+      handlerClosePointClick: this.#onClosePointAddClick,
+      //onFormSubmit: this.#handlerFormSubmit,
     });
 
     if (prevPointView === null || prevPointEditView === null) {
@@ -129,4 +138,13 @@ export default class RenderPoint {
     remove(this.#pointView);
     remove(this.#pointEditView);
   }
+
+  renderPointAdd = () => {
+    render(this.#addPointView, this.#containerPoint, RenderPosition.AFTERBEGIN);
+  };
+
+  #onClosePointAddClick = () => {
+    remove(this.#addPointView);
+    //this.#addPointView.reset();
+  };
 }

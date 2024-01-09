@@ -1,18 +1,14 @@
-import { TYPE_ROUTES } from '../const.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 
-function listType() {
+function listType(type) {
   return `
   <fieldset class="event__type-group">
     <legend class="visually-hidden">Event type</legend>
-    ${TYPE_ROUTES.map((type) => `
       <div class="event__type-item">
         <input id="event-type-${type.toLowerCase()}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${type.toLowerCase()}">
         <label class="event__type-label  event__type-label--${type.toLowerCase()}" for="event-type-${type.toLowerCase()}-1">${type}</label>
       </div>
-    `).join('')}
-  </fieldset>
-`;
+  </fieldset>`;
 }
 
 function createTemplateOffer(offer) {
@@ -28,14 +24,14 @@ function createTemplateOffer(offer) {
 }
 
 function createPicturesDestinationsTemplate(picture) {
-  return `img class="event__photo" src="${picture.src}" alt="${picture.description}">`;
+  return `<img class="event__photo" src="${picture.src}" alt="${picture.description}">`;
 }
 
 function createTitleDestinationsTemplate(title, id) {
   return `<option value="${title}" data-id="${id}">${title}</option>`;
 }
 
-function createListEvents({ typePoints, destinations, price, offersByType, allDestinations}) {
+function createListEvents({ typePoints, destinations, offersByType, allDestinations}) {
   const selectDestinations = allDestinations.find((destination) => destination.id === destinations);
   const selectType = offersByType.find((offer) => offer.type === typePoints ? offer : '');
   return `
@@ -45,20 +41,20 @@ function createListEvents({ typePoints, destinations, price, offersByType, allDe
           <div class="event__type-wrapper">
             <label class="event__type  event__type-btn" for="event-type-toggle-1">
               <span class="visually-hidden">Choose event type</span>
-              <img class="event__type-icon" width="17" height="17" src="img/icons/${typePoints.toLowerCase()}" alt="Event type icon">
+              <img class="event__type-icon" width="17" height="17" src="img/icons/${typePoints !== null ? typePoints.toLowerCase() : 'Taxi'}.png" alt="Event type icon">
             </label>
             <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox">
 
             <div class="event__type-list">
-                ${listType()}
+              ${offersByType.map((offerType) => listType(offerType.type)).join('')}
             </div>
           </div>
 
           <div class="event__field-group  event__field-group--destination">
             <label class="event__label  event__type-output" for="event-destination-1">
-              ${typePoints}
+              ${typePoints !== null ? typePoints : 'Taxi'}
             </label>
-            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="" list="destination-list-1">
+            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destinations !== null ? selectDestinations.name : ''}" list="destination-list-1">
             <datalist id="destination-list-1">
               ${allDestinations.map((destination) => createTitleDestinationsTemplate(destination.name, destination.id)).join('')}
             </datalist>
@@ -77,7 +73,7 @@ function createListEvents({ typePoints, destinations, price, offersByType, allDe
               <span class="visually-hidden">Price</span>
               &euro;
             </label>
-            <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value=" ${price}">
+            <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="">
           </div>
 
           <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
@@ -85,14 +81,15 @@ function createListEvents({ typePoints, destinations, price, offersByType, allDe
         </header>
 
         <section class="event__details">
-            <section class="event__section  event__section--offers">
-            <h3 class="event__section-title  event__section-title--offers">Offers</h3>
+            ${typePoints !== null ? `
+              <section class="event__section  event__section--offers">
+              <h3 class="event__section-title  event__section-title--offers">Offers</h3>
 
-            <div class="event__available-offers">
-            ${selectType.offers.map((offer) => createTemplateOffer(offer)).join('')}
-            </div>
+              <div class="event__available-offers">
+                ${selectType.offers.map((offer) => createTemplateOffer(offer)).join('')}
+              </div>` : ''}
           </section>
-          ${destinations.description !== null ? `
+          ${destinations !== null ? `
           <section class="event__section  event__section--destination">
             <h3 class="event__section-title  event__section-title--destination">Destination</h3>
             <p class="event__destination-description">${selectDestinations.description}</p>
@@ -114,11 +111,13 @@ export default class TripEventsListView extends AbstractStatefulView{
   #destinations = null;
   #selectDestination = null;
   #handlerCloseFormClick = null;
+  #handlerClosePointClick = null;
 
-  constructor({point, offers, destinations, onFormSubmit }) {
+  constructor({offers, destinations, handlerClosePointClick, onFormSubmit }) {
     super();
     this.#destinations = destinations;
-    this._setState(TripEventsListView.parsePointToState(point, offers, destinations));
+    this._setState(TripEventsListView.parsePointToState(offers, destinations));
+    this.#handlerClosePointClick = handlerClosePointClick;
     this.#handlerCloseFormClick = onFormSubmit;
 
     this._restoreHandlers();
@@ -132,10 +131,17 @@ export default class TripEventsListView extends AbstractStatefulView{
     this.element.querySelector('.event__save-btn').addEventListener('click', this.#onEditPointSubmit);
     this.element.addEventListener('click', this.#onSelectTypePointClick);
     this.element.querySelector('.event__input').addEventListener('change', this.#onSelectDestinationsClick);
+    this.element.querySelector('.event__reset-btn').addEventListener('click', this.#onClosePointClick);
   }
 
-  static parsePointToState(point, offers, destinations) {
-    return {...point,
+  static parsePointToState(offers, destinations) {
+    return {
+      typePoints: null,
+      title: null,
+      startDate: null,
+      endDate: null,
+      price: null,
+      destinations: null,
       offersByType: offers,
       allDestinations: destinations,
     };
@@ -149,6 +155,12 @@ export default class TripEventsListView extends AbstractStatefulView{
     delete point.destinations;
 
     return point;
+  }
+
+  reset(point) {
+    this.updateElement(
+      TripEventsListView.parsePointToState(point)
+    );
   }
 
   #selectingDestinations(name) {
@@ -173,5 +185,10 @@ export default class TripEventsListView extends AbstractStatefulView{
   #onEditPointSubmit = (evt) => {
     evt.preventDefault();
     this.#handlerCloseFormClick();
+  };
+
+  #onClosePointClick = (evt) => {
+    evt.preventDefault();
+    this.#handlerClosePointClick();
   };
 }

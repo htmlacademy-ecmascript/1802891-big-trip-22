@@ -1,6 +1,6 @@
 export const mockOffers = [
   {
-    type: 'taxi',
+    type: 'Taxi',
     offers: [
       {
         id:'11',
@@ -30,7 +30,7 @@ export const mockOffers = [
     ]
   },
   {
-    type: 'bus',
+    type: 'Bus',
     offers: [
       {
         id:'21',
@@ -50,7 +50,7 @@ export const mockOffers = [
     ]
   },
   {
-    type: 'ship',
+    type: 'Ship',
     offers: [
       {
         id:'31',
@@ -70,7 +70,7 @@ export const mockOffers = [
     ]
   },
   {
-    type: 'sightseeing',
+    type: 'Sightseeing',
     offers: []
   },
 ];

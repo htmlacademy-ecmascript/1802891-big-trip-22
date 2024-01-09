@@ -1,25 +1,23 @@
 import { humanizeOrderData } from '../utils/date.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
-import { TYPE_ROUTES, YEAR_MONTH_DAY } from '../const.js';
+import { YEAR_MONTH_DAY } from '../const.js';
 
-function listType() {
+function listType(type) {
   return `
   <fieldset class="event__type-group">
     <legend class="visually-hidden">Event type</legend>
-    ${TYPE_ROUTES.map((type) => `
       <div class="event__type-item">
         <input id="event-type-${type.toLowerCase()}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${type.toLowerCase()}">
         <label class="event__type-label  event__type-label--${type.toLowerCase()}" for="event-type-${type.toLowerCase()}-1">${type}</label>
       </div>
-    `).join('')}
-  </fieldset>
-`;
+  </fieldset>`;
 }
+
 function createTemplateOffer(offer, checkedOffers) {
   const checkedOffer = checkedOffers.map((allOffer) => allOffer.id === offer.id);
   return `
   <div class="event__offer-selector">
-    <input class="event__offer-checkbox  visually-hidden" id="event-offer-luggage-${offer.id}" type="checkbox" name="event-offer-luggage" ${checkedOffer.map((isOffer) => isOffer === true ? 'checked ' : '').join('')}>
+    <input class="event__offer-checkbox  visually-hidden" id="event-offer-${offer.title}-${offer.id}" type="checkbox" name="event-offer-luggage" ${checkedOffer.map((isOffer) => isOffer === true ? 'checked ' : '').join('')}>
     <label class="event__offer-label" for="event-offer-luggage-${offer.id}">
       <span class="event__offer-title">${offer.title}</span>
       &plus;&euro;&nbsp;
@@ -49,7 +47,7 @@ function createPointEditComponent({typePoints, destinations, startDate, endDate,
            <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox">
 
            <div class="event__type-list">
-            ${listType()}
+            ${offersByType.map((offerType) => listType(offerType.type)).join('')}
            </div>
          </div>
 
@@ -94,7 +92,7 @@ function createPointEditComponent({typePoints, destinations, startDate, endDate,
            </div>
          </section>
 
-         ${destinations.description !== null ? `
+         ${destinations !== null ? `
           <section class="event__section  event__section--destination">
             <h3 class="event__section-title  event__section-title--destination">Destination</h3>
             <p class="event__destination-description">${selectDestinations.description}</p>
@@ -155,7 +153,6 @@ export default class EventEditView extends AbstractStatefulView {
     this.updateElement(
       EventEditView.parsePointToState(point)
     );
-    console.log(this._state);
   }
 
   #selectingDestinations(name) {
