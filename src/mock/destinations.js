@@ -2,7 +2,7 @@ export const mockDestinations = [
   {
     id: '1',
     description: 'Geneva is a city in Switzerland that lies at the southern tip of expansive Lac Léman (Lake Geneva).',
-    name: '',
+    name: 'Geneva',
     pictures: [
       {
         src: 'https://loremflickr.com/248/152?random=1',
@@ -13,24 +13,24 @@ export const mockDestinations = [
   },
   {
     id: '2',
-    description: 'Geneva is a city in Switzerland that lies at the southern tip of expansive Lac Léman (Lake Amsterdam).',
-    name: '',
+    description: 'Moscow is a city in Switzerland that lies at the southern tip of expansive Lac Léman (Lake Moscow).',
+    name: 'Moscow',
     pictures: [
       {
         src: 'https://loremflickr.com/248/152?random=2',
-        description: 'Geneva is a city in Switzerland that lies at the southern tip of expansive Lac Léman (Lake Amsterdam).'
+        description: 'Moscow is a city in Switzerland that lies at the southern tip of expansive Lac Léman (Lake Moscow).'
       }
 
     ]
   },
   {
     id: '3',
-    description: 'Geneva is a city in Switzerland that lies at the southern tip of expansive Lac Léman (Lake Moscow).',
-    name: '',
+    description: 'Amsterdam is a city in Switzerland that lies at the southern tip of expansive Lac Léman (Lake Amsterdam).',
+    name: 'Amsterdam',
     pictures: [
       {
         src: 'https://loremflickr.com/248/152?random=3',
-        description: 'Geneva is a city in Switzerland that lies at the southern tip of expansive Lac Léman (Lake Moscow).'
+        description: 'Amsterdam is a city in Switzerland that lies at the southern tip of expansive Lac Léman (Lake Amsterdam).'
       }
     ]
   }

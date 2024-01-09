@@ -49,8 +49,6 @@ export default class TripSortPointsView extends AbstractView{
     if (evt.target.tagName !== 'LABEL') {
       return;
     }
-
-    evt.preventDefault();
     this.#handlerSortByTypePoints(evt.target.dataset.sortType);
     console.log(evt.target);
   };
