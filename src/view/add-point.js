@@ -1,4 +1,7 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
+import flatpickr from 'flatpickr';
+
+import 'flatpickr/dist/flatpickr.min.css';
 
 function listType(type) {
   return `
@@ -31,7 +34,7 @@ function createTitleDestinationsTemplate(title, id) {
   return `<option value="${title}" data-id="${id}">${title}</option>`;
 }
 
-function createListEvents({ typePoints, destinations, offersByType, allDestinations}) {
+function createListEvents({ typePoints, destinations, startDate, endDate, offersByType, allDestinations}) {
   const selectDestinations = allDestinations.find((destination) => destination.id === destinations);
   const selectType = offersByType.find((offer) => offer.type === typePoints ? offer : '');
   return `
@@ -62,10 +65,10 @@ function createListEvents({ typePoints, destinations, offersByType, allDestinati
 
           <div class="event__field-group  event__field-group--time">
             <label class="visually-hidden" for="event-start-time-1">From</label>
-            <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="">
+            <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${startDate !== null ? startDate : ''}">
             &mdash;
             <label class="visually-hidden" for="event-end-time-1">To</label>
-            <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="">
+            <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${endDate !== null ? endDate : ''}">
           </div>
 
           <div class="event__field-group  event__field-group--price">
@@ -112,6 +115,7 @@ export default class TripEventsListView extends AbstractStatefulView{
   #selectDestination = null;
   #handlerCloseFormClick = null;
   #handlerClosePointClick = null;
+  #datePicker = null;
 
   constructor({offers, destinations, handlerClosePointClick, onFormSubmit }) {
     super();
@@ -119,6 +123,8 @@ export default class TripEventsListView extends AbstractStatefulView{
     this._setState(TripEventsListView.parsePointToState(offers, destinations));
     this.#handlerClosePointClick = handlerClosePointClick;
     this.#handlerCloseFormClick = onFormSubmit;
+    this.#setStartDatePicker();
+    this.#setEndDatePicker();
 
     this._restoreHandlers();
   }
@@ -190,5 +196,43 @@ export default class TripEventsListView extends AbstractStatefulView{
   #onClosePointClick = (evt) => {
     evt.preventDefault();
     this.#handlerClosePointClick();
+  };
+
+  #setStartDatePicker() {
+    this.#datePicker = flatpickr(
+      this.element.querySelector('#event-start-time-1'),
+      {
+        dateFormat: 'y/m/d h:i',
+        enableTime: true,
+        defaultDate: this._state.startDate,
+        onChange: this.#onStartDateChange,
+      },
+    );
+  }
+
+  #setEndDatePicker() {
+    this.#datePicker = flatpickr(
+      this.element.querySelector('#event-end-time-1'),
+      {
+        //altInput: true,
+        // altFormat: 'y/m/d h:i',
+        dateFormat: 'y/m/d h:i',
+        enableTime: true,
+        defaultDate: this._state.endDate,
+        onChange: this.#onEndDateChange,
+      },
+    );
+  }
+
+  #onStartDateChange = ([date]) => {
+    this.updateElement({
+      startDate: date,
+    });
+  };
+
+  #onEndDateChange = ([date]) => {
+    this.updateElement({
+      endDate: date,
+    });
   };
 }

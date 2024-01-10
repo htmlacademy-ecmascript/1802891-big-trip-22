@@ -1,6 +1,9 @@
 import { humanizeOrderData } from '../utils/date.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { YEAR_MONTH_DAY } from '../const.js';
+import flatpickr from 'flatpickr';
+
+import 'flatpickr/dist/flatpickr.min.css';
 
 function listType(type) {
   return `
@@ -110,12 +113,16 @@ export default class EventEditView extends AbstractStatefulView {
   #selectDestination = null;
   #handlerCloseFormClick = null;
 
+  #datePicker = null;
+
   constructor({point, checkedOffers, offers, destinations, onFormSubmit, onCloseEditClick }) {
     super();
     this.#destinations = destinations;
     this._setState(EventEditView.parsePointToState(point, checkedOffers, offers, destinations));
     this.#handlerSaveFormClick = onFormSubmit;
     this.#handlerCloseFormClick = onCloseEditClick;
+    this.#setStartDatePicker();
+    this.#setEndDatePicker();
 
     this._restoreHandlers();
   }
@@ -127,7 +134,7 @@ export default class EventEditView extends AbstractStatefulView {
   _restoreHandlers() {
     this.element.querySelector('.event__save-btn').addEventListener('click', this.#onEditPointSubmit);
     this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#onClosePointClick);
-    this.element.addEventListener('click', this.#onSelectTypePointClick);
+    this.element.querySelector('.event__type-wrapper').addEventListener('click', this.#onSelectTypePointClick);
     this.element.querySelector('.event__input').addEventListener('change', this.#onSelectDestinationsClick);
   }
 
@@ -158,6 +165,42 @@ export default class EventEditView extends AbstractStatefulView {
   #selectingDestinations(name) {
     this.#selectDestination = this.#destinations.find((destination) => destination.name === name);
   }
+
+  #setStartDatePicker() {
+    this.#datePicker = flatpickr(
+      this.element.querySelector('#event-start-time-1'),
+      {
+        altInput: true,
+        dateFormat: 'Y-m-d H:i',
+        defaultDate: this._state.startDate,
+        onChange: this.#onStartDateChange,
+      },
+    );
+  }
+
+  #setEndDatePicker() {
+    this.#datePicker = flatpickr(
+      this.element.querySelector('#event-end-time-1'),
+      {
+        altInput: true,
+        dateFormat: 'Y-m-d H:i',
+        defaultDate: this._state.endDate,
+        onChange: this.#onEndDateChange,
+      },
+    );
+  }
+
+  #onStartDateChange = ([date]) => {
+    this.updateElement({
+      startDate: date,
+    });
+  };
+
+  #onEndDateChange = ([date]) => {
+    this.updateElement({
+      endDate: date,
+    });
+  };
 
   #onSelectTypePointClick = (evt) => {
     if (evt.target.closest('.event__type-label')) {
