@@ -592,8 +592,8 @@ class contentPresenter {
     if (this.#currentTypeSort === sortType) {
       return;
     }
-    this.#sortPoint(sortType);
     this.#clearPoints();
+    this.#sortPoint(sortType);
     this.#renderPoints();
   };
   #handlerOpenAddPoint = () => {
@@ -743,8 +743,14 @@ class RenderPoint {
   }
   resetView() {
     if (this.#mode !== Mode.DEFAULT) {
-      this.#pointEditView.reset(this.#pointData);
+      this.#pointEditView.reset({
+        point: this.#pointData,
+        checkedOffers: [...this.#pointModel.getOfferById(this.#pointData.typePoints, this.#pointData.offers)],
+        offers: [...this.#pointModel.offers],
+        destinations: this.#pointModel.destinations
+      });
       this.#replaceEditFormToPoint();
+      this.#onClosePointAddClick();
     }
   }
   #replacePointToEditPoint() {
@@ -762,7 +768,12 @@ class RenderPoint {
     if (evt.key === 'Escape') {
       evt.preventDefault();
       this.#handlerSwapPointToEditClick();
-      this.#pointEditView.reset(this.#pointData);
+      this.#pointEditView.reset({
+        point: this.#pointData,
+        checkedOffers: [...this.#pointModel.getOfferById(this.#pointData.typePoints, this.#pointData.offers)],
+        offers: [...this.#pointModel.offers],
+        destinations: this.#pointModel.destinations
+      });
       document.removeEventListener('keydown', this.#escKeyDownHandler);
     }
   };
@@ -798,7 +809,10 @@ class RenderPoint {
   };
   #onClosePointAddClick = () => {
     (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_3__.remove)(this.#addPointView);
-    //this.#addPointView.reset();
+    this.#addPointView.reset({
+      offers: [...this.#pointModel.offers],
+      destinations: this.#pointModel.destinations
+    });
   };
 }
 
@@ -1054,8 +1068,6 @@ class TripEventsListView extends _framework_view_abstract_stateful_view_js__WEBP
     this._setState(TripEventsListView.parsePointToState(offers, destinations));
     this.#handlerClosePointClick = handlerClosePointClick;
     this.#handlerCloseFormClick = onFormSubmit;
-    this.#setStartDatePicker();
-    this.#setEndDatePicker();
     this._restoreHandlers();
   }
   get template() {
@@ -1066,6 +1078,8 @@ class TripEventsListView extends _framework_view_abstract_stateful_view_js__WEBP
     this.element.addEventListener('click', this.#onSelectTypePointClick);
     this.element.querySelector('.event__input').addEventListener('change', this.#onSelectDestinationsClick);
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#onClosePointClick);
+    this.#setStartDatePicker();
+    this.#setEndDatePicker();
   }
   static parsePointToState(offers, destinations) {
     return {
@@ -1088,8 +1102,11 @@ class TripEventsListView extends _framework_view_abstract_stateful_view_js__WEBP
     delete point.destinations;
     return point;
   }
-  reset(point) {
-    this.updateElement(TripEventsListView.parsePointToState(point));
+  reset({
+    offers,
+    destinations
+  }) {
+    this.updateElement(TripEventsListView.parsePointToState(offers, destinations));
   }
   #selectingDestinations(name) {
     this.#selectDestination = this.#destinations.find(destination => destination.name === name);
@@ -1119,16 +1136,16 @@ class TripEventsListView extends _framework_view_abstract_stateful_view_js__WEBP
     this.#datePicker = (0,flatpickr__WEBPACK_IMPORTED_MODULE_1__["default"])(this.element.querySelector('#event-start-time-1'), {
       dateFormat: 'y/m/d h:i',
       enableTime: true,
+      maxDate: this._state.endDate,
       defaultDate: this._state.startDate,
       onChange: this.#onStartDateChange
     });
   }
   #setEndDatePicker() {
     this.#datePicker = (0,flatpickr__WEBPACK_IMPORTED_MODULE_1__["default"])(this.element.querySelector('#event-end-time-1'), {
-      //altInput: true,
-      // altFormat: 'y/m/d h:i',
       dateFormat: 'y/m/d h:i',
       enableTime: true,
+      minDate: this._state.startDate,
       defaultDate: this._state.endDate,
       onChange: this.#onEndDateChange
     });
@@ -1332,8 +1349,6 @@ class EventEditView extends _framework_view_abstract_stateful_view_js__WEBPACK_I
     this._setState(EventEditView.parsePointToState(point, checkedOffers, offers, destinations));
     this.#handlerSaveFormClick = onFormSubmit;
     this.#handlerCloseFormClick = onCloseEditClick;
-    this.#setStartDatePicker();
-    this.#setEndDatePicker();
     this._restoreHandlers();
   }
   get template() {
@@ -1344,6 +1359,8 @@ class EventEditView extends _framework_view_abstract_stateful_view_js__WEBPACK_I
     this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#onClosePointClick);
     this.element.querySelector('.event__type-wrapper').addEventListener('click', this.#onSelectTypePointClick);
     this.element.querySelector('.event__input').addEventListener('change', this.#onSelectDestinationsClick);
+    this.#setStartDatePicker();
+    this.#setEndDatePicker();
   }
   static parsePointToState(point, checkedOffers, offers, destinations) {
     return {
@@ -1362,24 +1379,31 @@ class EventEditView extends _framework_view_abstract_stateful_view_js__WEBPACK_I
     delete point.allDestinations;
     return point;
   }
-  reset(point) {
-    this.updateElement(EventEditView.parsePointToState(point));
+  reset({
+    point,
+    checkedOffers,
+    offers,
+    destinations
+  }) {
+    this.updateElement(EventEditView.parsePointToState(point, checkedOffers, offers, destinations));
   }
   #selectingDestinations(name) {
     this.#selectDestination = this.#destinations.find(destination => destination.name === name);
   }
   #setStartDatePicker() {
     this.#datePicker = (0,flatpickr__WEBPACK_IMPORTED_MODULE_3__["default"])(this.element.querySelector('#event-start-time-1'), {
-      altInput: true,
-      dateFormat: 'Y-m-d H:i',
+      dateFormat: 'y/m/d h:i',
+      enableTime: true,
+      maxDate: this._state.endDate,
       defaultDate: this._state.startDate,
       onChange: this.#onStartDateChange
     });
   }
   #setEndDatePicker() {
     this.#datePicker = (0,flatpickr__WEBPACK_IMPORTED_MODULE_3__["default"])(this.element.querySelector('#event-end-time-1'), {
-      altInput: true,
-      dateFormat: 'Y-m-d H:i',
+      dateFormat: 'y/m/d h:i',
+      enableTime: true,
+      minDate: this._state.startDate,
       defaultDate: this._state.endDate,
       onChange: this.#onEndDateChange
     });
@@ -5326,4 +5350,4 @@ contentPresenter.init();
 
 /******/ })()
 ;
-//# sourceMappingURL=bundle.f729b946b9d239b765c7.js.map
+//# sourceMappingURL=bundle.72b9fb163e674f081ec3.js.map
