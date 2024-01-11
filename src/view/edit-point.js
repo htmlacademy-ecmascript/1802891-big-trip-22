@@ -121,8 +121,7 @@ export default class EventEditView extends AbstractStatefulView {
     this._setState(EventEditView.parsePointToState(point, checkedOffers, offers, destinations));
     this.#handlerSaveFormClick = onFormSubmit;
     this.#handlerCloseFormClick = onCloseEditClick;
-    this.#setStartDatePicker();
-    this.#setEndDatePicker();
+
 
     this._restoreHandlers();
   }
@@ -136,6 +135,8 @@ export default class EventEditView extends AbstractStatefulView {
     this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#onClosePointClick);
     this.element.querySelector('.event__type-wrapper').addEventListener('click', this.#onSelectTypePointClick);
     this.element.querySelector('.event__input').addEventListener('change', this.#onSelectDestinationsClick);
+    this.#setStartDatePicker();
+    this.#setEndDatePicker();
   }
 
   static parsePointToState(point, checkedOffers, offers, destinations) {
@@ -156,9 +157,9 @@ export default class EventEditView extends AbstractStatefulView {
     return point;
   }
 
-  reset(point) {
+  reset({point, checkedOffers, offers, destinations}) {
     this.updateElement(
-      EventEditView.parsePointToState(point)
+      EventEditView.parsePointToState(point, checkedOffers, offers, destinations)
     );
   }
 
@@ -170,8 +171,9 @@ export default class EventEditView extends AbstractStatefulView {
     this.#datePicker = flatpickr(
       this.element.querySelector('#event-start-time-1'),
       {
-        altInput: true,
-        dateFormat: 'Y-m-d H:i',
+        dateFormat: 'y/m/d h:i',
+        enableTime: true,
+        maxDate: this._state.endDate,
         defaultDate: this._state.startDate,
         onChange: this.#onStartDateChange,
       },
@@ -182,8 +184,9 @@ export default class EventEditView extends AbstractStatefulView {
     this.#datePicker = flatpickr(
       this.element.querySelector('#event-end-time-1'),
       {
-        altInput: true,
-        dateFormat: 'Y-m-d H:i',
+        dateFormat: 'y/m/d h:i',
+        enableTime: true,
+        minDate: this._state.startDate,
         defaultDate: this._state.endDate,
         onChange: this.#onEndDateChange,
       },

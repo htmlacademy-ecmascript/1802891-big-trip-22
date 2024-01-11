@@ -123,8 +123,6 @@ export default class TripEventsListView extends AbstractStatefulView{
     this._setState(TripEventsListView.parsePointToState(offers, destinations));
     this.#handlerClosePointClick = handlerClosePointClick;
     this.#handlerCloseFormClick = onFormSubmit;
-    this.#setStartDatePicker();
-    this.#setEndDatePicker();
 
     this._restoreHandlers();
   }
@@ -138,6 +136,8 @@ export default class TripEventsListView extends AbstractStatefulView{
     this.element.addEventListener('click', this.#onSelectTypePointClick);
     this.element.querySelector('.event__input').addEventListener('change', this.#onSelectDestinationsClick);
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#onClosePointClick);
+    this.#setStartDatePicker();
+    this.#setEndDatePicker();
   }
 
   static parsePointToState(offers, destinations) {
@@ -163,9 +163,9 @@ export default class TripEventsListView extends AbstractStatefulView{
     return point;
   }
 
-  reset(point) {
+  reset({offers, destinations}) {
     this.updateElement(
-      TripEventsListView.parsePointToState(point)
+      TripEventsListView.parsePointToState(offers, destinations)
     );
   }
 
@@ -204,6 +204,7 @@ export default class TripEventsListView extends AbstractStatefulView{
       {
         dateFormat: 'y/m/d h:i',
         enableTime: true,
+        maxDate: this._state.endDate,
         defaultDate: this._state.startDate,
         onChange: this.#onStartDateChange,
       },
@@ -214,10 +215,9 @@ export default class TripEventsListView extends AbstractStatefulView{
     this.#datePicker = flatpickr(
       this.element.querySelector('#event-end-time-1'),
       {
-        //altInput: true,
-        // altFormat: 'y/m/d h:i',
         dateFormat: 'y/m/d h:i',
         enableTime: true,
+        minDate: this._state.startDate,
         defaultDate: this._state.endDate,
         onChange: this.#onEndDateChange,
       },

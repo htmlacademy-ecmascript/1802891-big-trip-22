@@ -83,8 +83,14 @@ export default class RenderPoint {
 
   resetView() {
     if (this.#mode !== Mode.DEFAULT) {
-      this.#pointEditView.reset(this.#pointData);
+      this.#pointEditView.reset({
+        point: this.#pointData,
+        checkedOffers: [...this.#pointModel.getOfferById(this.#pointData.typePoints, this.#pointData.offers)],
+        offers: [...this.#pointModel.offers],
+        destinations: this.#pointModel.destinations
+      });
       this.#replaceEditFormToPoint();
+      this.#onClosePointAddClick();
     }
   }
 
@@ -105,7 +111,12 @@ export default class RenderPoint {
     if (evt.key === 'Escape') {
       evt.preventDefault();
       this.#handlerSwapPointToEditClick();
-      this.#pointEditView.reset(this.#pointData);
+      this.#pointEditView.reset({
+        point: this.#pointData,
+        checkedOffers: [...this.#pointModel.getOfferById(this.#pointData.typePoints, this.#pointData.offers)],
+        offers: [...this.#pointModel.offers],
+        destinations: this.#pointModel.destinations
+      });
       document.removeEventListener('keydown', this.#escKeyDownHandler);
     }
   };
@@ -145,6 +156,9 @@ export default class RenderPoint {
 
   #onClosePointAddClick = () => {
     remove(this.#addPointView);
-    //this.#addPointView.reset();
+    this.#addPointView.reset({
+      offers: [...this.#pointModel.offers],
+      destinations: this.#pointModel.destinations
+    });
   };
 }
