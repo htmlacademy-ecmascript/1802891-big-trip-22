@@ -13,19 +13,21 @@ function createTemplateOffer(offer) {
 }
 
 
-function createOrderTemplate(point, offers) {
-  const {typePoints, title, startDate, endDate, price, isFavourite} = point;
+function createOrderTemplate(point, offers, destination) {
+  const {typePoint, startDate, endDate, price, isFavourite} = point;
   const formatStartTime = humanizeOrderData(startDate, TIME_FORMAT_H_M);
   const formatEndTime = humanizeOrderData(endDate, TIME_FORMAT_H_M);
+
+  const title = destination.name;
 
   return `
     <li class="trip-events__item">
       <div class="event">
         <time class="event__date" datetime="${startDate}">${humanizeOrderData(startDate)}</time>
         <div class="event__type">
-          <img class="event__type-icon" width="42" height="42" src="img/icons/${typePoints.toLowerCase()}.png" alt="Event type icon">
+          <img class="event__type-icon" width="42" height="42" src="img/icons/${typePoint.toLowerCase()}.png" alt="Event type icon">
         </div>
-        <h3 class="event__title">${typePoints} ${title}</h3>
+        <h3 class="event__title">${typePoint} ${title}</h3>
         <div class="event__schedule">
           <p class="event__time">
             <time class="event__start-time" datetime="${startDate}">${formatStartTime}</time>
@@ -58,15 +60,15 @@ function createOrderTemplate(point, offers) {
 export default class PointView extends AbstractView{
   #point = null;
   #checkedOffers = null;
-  #destinations = null;
+  #destination = null;
   #handlerEditClick = null;
   #handlerChangeFavoriteClick = null;
 
-  constructor({point, checkedOffers, destinations, onEditPointClick, onFavoriteChangeClick}) {
+  constructor({point, checkedOffers, destination, onEditPointClick, onFavoriteChangeClick}) {
     super();
     this.#point = point;
     this.#checkedOffers = checkedOffers;
-    this.#destinations = destinations;
+    this.#destination = destination;
     this.#handlerEditClick = onEditPointClick;
     this.#handlerChangeFavoriteClick = onFavoriteChangeClick;
 
@@ -75,7 +77,7 @@ export default class PointView extends AbstractView{
   }
 
   get template() {
-    return createOrderTemplate(this.#point, this.#checkedOffers, this.#destinations);
+    return createOrderTemplate(this.#point, this.#checkedOffers, this.#destination);
   }
 
   #onEditPointClick = (evt) => {

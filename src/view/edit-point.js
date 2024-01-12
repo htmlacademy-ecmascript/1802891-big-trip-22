@@ -33,10 +33,10 @@ function createTitleDestinationsTemplate(title, id) {
   return `<option value="${title}" data-id="${id}">${title}</option>`;
 }
 
-function createPointEditComponent({typePoints, destinations, startDate, endDate, price, checkedOffers, offersByType, allDestinations}) {
+function createPointEditComponent({typePoint, destinationId, startDate, endDate, price, checkedOffers, offersByType, allDestinations}) {
   const startFormatDate = humanizeOrderData(startDate, YEAR_MONTH_DAY);
-  const selectDestinations = allDestinations.find((destination) => destination.id === destinations);
-  const selectOffer = offersByType.find((offer) => offer.type === typePoints ? offer : '');
+  const selectDestination = allDestinations.find((destination) => destination.id === destinationId);
+  const selectOffer = offersByType.find((offer) => offer.type === typePoint ? offer : '');
   const endFormatDate = humanizeOrderData(endDate, YEAR_MONTH_DAY);
   return `
     <li class="trip-events__item">
@@ -45,7 +45,7 @@ function createPointEditComponent({typePoints, destinations, startDate, endDate,
          <div class="event__type-wrapper">
            <label class="event__type  event__type-btn" for="event-type-toggle-1">
              <span class="visually-hidden">Choose event type</span>
-             <img class="event__type-icon" width="17" height="17" src="img/icons/${typePoints.toLowerCase()}.png" alt="Event type icon">
+             <img class="event__type-icon" width="17" height="17" src="img/icons/${typePoint.toLowerCase()}.png" alt="Event type icon">
            </label>
            <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox">
 
@@ -56,9 +56,9 @@ function createPointEditComponent({typePoints, destinations, startDate, endDate,
 
          <div class="event__field-group  event__field-group--destination">
            <label class="event__label  event__type-output" for="event-destination-1">
-            ${typePoints}
+            ${typePoint}
            </label>
-           <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${selectDestinations.name}" list="destination-list-1">
+           <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${selectDestination.name}" list="destination-list-1">
            <datalist id="destination-list-1">
             ${allDestinations.map((destination) => createTitleDestinationsTemplate(destination.name, destination.id)).join('')}
            </datalist>
@@ -95,10 +95,10 @@ function createPointEditComponent({typePoints, destinations, startDate, endDate,
            </div>
          </section>
 
-         ${destinations !== null ? `
+         ${destinationId !== null ? `
           <section class="event__section  event__section--destination">
             <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-            <p class="event__destination-description">${selectDestinations.description}</p>
+            <p class="event__destination-description">${selectDestination.description}</p>
           </section>` : ''}
 
        </section>
@@ -163,6 +163,15 @@ export default class EventEditView extends AbstractStatefulView {
     );
   }
 
+  removeElement() {
+    super.removeElement();
+
+    if (this.#datePicker) {
+      this.#datePicker.destroy();
+      this.#datePicker = null;
+    }
+  }
+
   #selectingDestinations(name) {
     this.#selectDestination = this.#destinations.find((destination) => destination.name === name);
   }
@@ -208,7 +217,7 @@ export default class EventEditView extends AbstractStatefulView {
   #onSelectTypePointClick = (evt) => {
     if (evt.target.closest('.event__type-label')) {
       this.updateElement({
-        typePoints: this._state.typePoints = evt.target.textContent
+        typePoint: evt.target.textContent
       });
     }
   };
@@ -216,7 +225,7 @@ export default class EventEditView extends AbstractStatefulView {
   #onSelectDestinationsClick = (evt) => {
     this.#selectingDestinations(evt.target.value);
     this.updateElement({
-      destinations: this._state.destinations = this.#selectDestination.id
+      destinationId: this.#selectDestination.id
     });
   };
 
