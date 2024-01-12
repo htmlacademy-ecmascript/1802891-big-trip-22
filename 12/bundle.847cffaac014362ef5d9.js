@@ -327,53 +327,53 @@ const mockOffers = [{
   offers: [{
     id: '11',
     title: 'Add meal',
-    price: '12'
+    price: 12
   }, {
     id: '12',
     title: 'Add luggage',
-    price: '50'
+    price: 50
   }, {
     id: '13',
     title: 'Order Uber',
-    price: '20'
+    price: 20
   }, {
     id: '14',
     title: 'Choose seats',
-    price: '5'
+    price: 5
   }, {
     id: '15',
     title: 'Travel by train',
-    price: '5'
+    price: 5
   }]
 }, {
   type: 'Bus',
   offers: [{
     id: '21',
     title: 'Add meal',
-    price: '12'
+    price: 12
   }, {
     id: '22',
     title: 'Add luggage',
-    price: '50'
+    price: 50
   }, {
     id: '23',
     title: 'Choose seats',
-    price: '5'
+    price: 5
   }]
 }, {
   type: 'Ship',
   offers: [{
     id: '31',
     title: 'Add meal',
-    price: '12'
+    price: 12
   }, {
     id: '32',
     title: 'Add luggage',
-    price: '50'
+    price: 50
   }, {
     id: '33',
     title: 'Travel by train',
-    price: '5'
+    price: 5
   }]
 }, {
   type: 'Sightseeing',
@@ -398,30 +398,27 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const mockOrders = [{
-  typePoints: 'Taxi',
-  title: 'Geneva',
+  typePoint: 'Taxi',
   startDate: new Date('2023-09-11T10:30:00'),
   endDate: new Date('2023-09-11T11:00:00'),
   price: 145,
-  destinations: '1',
+  destinationId: '1',
   offers: ['11', '12', '13'],
   isFavourite: true
 }, {
-  typePoints: 'Bus',
-  title: 'Amsterdam',
+  typePoint: 'Bus',
   startDate: new Date('2023-12-12T10:30'),
   endDate: new Date('2023-12-12T12:00'),
   price: 65,
-  destinations: '2',
+  destinationId: '2',
   offers: ['21', '22'],
   isFavourite: false
 }, {
-  typePoints: 'Sightseeing',
-  title: 'Moscow',
+  typePoint: 'Sightseeing',
   startDate: new Date('2023-12-12T23:30'),
   endDate: new Date('2023-12-12T23:40'),
   price: 50,
-  destinations: '3',
+  destinationId: '3',
   offers: [],
   isFavourite: false
 }];
@@ -705,8 +702,8 @@ class RenderPoint {
     const prevPointEditView = this.#pointEditView;
     this.#pointView = new _view_point_js__WEBPACK_IMPORTED_MODULE_1__["default"]({
       point: point,
-      checkedOffers: [...this.#pointModel.getOfferById(point.typePoints, point.offers)],
-      destinations: this.#pointModel.getDestinationsById(point.destinations),
+      checkedOffers: [...this.#pointModel.getOfferById(point.typePoint, point.offers)],
+      destination: this.#pointModel.getDestinationsById(point.destinationId),
       onEditPointClick: () => {
         this.#handlerSwapEditToPointClick();
         document.addEventListener('keydown', this.#escKeyDownHandler);
@@ -715,7 +712,7 @@ class RenderPoint {
     });
     this.#pointEditView = new _view_edit_point_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
       point: point,
-      checkedOffers: [...this.#pointModel.getOfferById(point.typePoints, point.offers)],
+      checkedOffers: [...this.#pointModel.getOfferById(point.typePoint, point.offers)],
       offers: [...this.#pointModel.offers],
       destinations: this.#pointModel.destinations,
       onFormSubmit: this.#handlerFormSubmit,
@@ -743,15 +740,15 @@ class RenderPoint {
   }
   resetView() {
     if (this.#mode !== Mode.DEFAULT) {
-      this.#pointEditView.reset({
-        point: this.#pointData,
-        checkedOffers: [...this.#pointModel.getOfferById(this.#pointData.typePoints, this.#pointData.offers)],
-        offers: [...this.#pointModel.offers],
-        destinations: this.#pointModel.destinations
-      });
       this.#replaceEditFormToPoint();
-      this.#onClosePointAddClick();
     }
+    this.#pointEditView.reset({
+      point: this.#pointData,
+      checkedOffers: [...this.#pointModel.getOfferById(this.#pointData.typePoint, this.#pointData.offers)],
+      offers: [...this.#pointModel.offers],
+      destinations: this.#pointModel.destinations
+    });
+    this.#onClosePointAddClick();
   }
   #replacePointToEditPoint() {
     (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_3__.replace)(this.#pointEditView, this.#pointView);
@@ -770,7 +767,7 @@ class RenderPoint {
       this.#handlerSwapPointToEditClick();
       this.#pointEditView.reset({
         point: this.#pointData,
-        checkedOffers: [...this.#pointModel.getOfferById(this.#pointData.typePoints, this.#pointData.offers)],
+        checkedOffers: [...this.#pointModel.getOfferById(this.#pointData.typePoint, this.#pointData.offers)],
         offers: [...this.#pointModel.offers],
         destinations: this.#pointModel.destinations
       });
@@ -971,15 +968,15 @@ function createTitleDestinationsTemplate(title, id) {
   return `<option value="${title}" data-id="${id}">${title}</option>`;
 }
 function createListEvents({
-  typePoints,
-  destinations,
+  typePoint,
+  destination,
   startDate,
   endDate,
   offersByType,
   allDestinations
 }) {
-  const selectDestinations = allDestinations.find(destination => destination.id === destinations);
-  const selectType = offersByType.find(offer => offer.type === typePoints ? offer : '');
+  const selectDestination = allDestinations.find(selectedDestination => selectedDestination.id === destination);
+  const selectType = offersByType.find(offer => offer.type === typePoint ? offer : '');
   return `
     <li class="trip-events__item">
       <form class="event event--edit" action="#" method="post">
@@ -987,7 +984,7 @@ function createListEvents({
           <div class="event__type-wrapper">
             <label class="event__type  event__type-btn" for="event-type-toggle-1">
               <span class="visually-hidden">Choose event type</span>
-              <img class="event__type-icon" width="17" height="17" src="img/icons/${typePoints !== null ? typePoints.toLowerCase() : 'Taxi'}.png" alt="Event type icon">
+              <img class="event__type-icon" width="17" height="17" src="img/icons/${typePoint !== null ? typePoint.toLowerCase() : 'Taxi'}.png" alt="Event type icon">
             </label>
             <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox">
 
@@ -998,11 +995,11 @@ function createListEvents({
 
           <div class="event__field-group  event__field-group--destination">
             <label class="event__label  event__type-output" for="event-destination-1">
-              ${typePoints !== null ? typePoints : 'Taxi'}
+              ${typePoint !== null ? typePoint : 'Taxi'}
             </label>
-            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destinations !== null ? selectDestinations.name : ''}" list="destination-list-1">
+            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destination !== null ? selectDestination.name : ''}" list="destination-list-1">
             <datalist id="destination-list-1">
-              ${allDestinations.map(destination => createTitleDestinationsTemplate(destination.name, destination.id)).join('')}
+              ${allDestinations.map(selectedDestination => createTitleDestinationsTemplate(selectedDestination.name, selectedDestination.id)).join('')}
             </datalist>
           </div>
 
@@ -1027,7 +1024,7 @@ function createListEvents({
         </header>
 
         <section class="event__details">
-            ${typePoints !== null ? `
+            ${typePoint !== null ? `
               <section class="event__section  event__section--offers">
               <h3 class="event__section-title  event__section-title--offers">Offers</h3>
 
@@ -1035,14 +1032,14 @@ function createListEvents({
                 ${selectType.offers.map(offer => createTemplateOffer(offer)).join('')}
               </div>` : ''}
           </section>
-          ${destinations !== null ? `
+          ${destination !== null ? `
           <section class="event__section  event__section--destination">
             <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-            <p class="event__destination-description">${selectDestinations.description}</p>
+            <p class="event__destination-description">${selectDestination.description}</p>
 
             <div class="event__photos-container">
               <div class="event__photos-tape">
-                ${selectDestinations.pictures.map(picture => createPicturesDestinationsTemplate(picture))}
+                ${selectDestination.pictures.map(picture => createPicturesDestinationsTemplate(picture))}
               </div>
             </div>
           </section>` : ''}
@@ -1083,12 +1080,12 @@ class TripEventsListView extends _framework_view_abstract_stateful_view_js__WEBP
   }
   static parsePointToState(offers, destinations) {
     return {
-      typePoints: null,
+      typePoint: null,
       title: null,
       startDate: null,
       endDate: null,
       price: null,
-      destinations: null,
+      destination: null,
       offersByType: offers,
       allDestinations: destinations
     };
@@ -1249,8 +1246,8 @@ function createTitleDestinationsTemplate(title, id) {
   return `<option value="${title}" data-id="${id}">${title}</option>`;
 }
 function createPointEditComponent({
-  typePoints,
-  destinations,
+  typePoint,
+  destinationId,
   startDate,
   endDate,
   price,
@@ -1259,8 +1256,8 @@ function createPointEditComponent({
   allDestinations
 }) {
   const startFormatDate = (0,_utils_date_js__WEBPACK_IMPORTED_MODULE_0__.humanizeOrderData)(startDate, _const_js__WEBPACK_IMPORTED_MODULE_2__.YEAR_MONTH_DAY);
-  const selectDestinations = allDestinations.find(destination => destination.id === destinations);
-  const selectOffer = offersByType.find(offer => offer.type === typePoints ? offer : '');
+  const selectDestination = allDestinations.find(destination => destination.id === destinationId);
+  const selectOffer = offersByType.find(offer => offer.type === typePoint ? offer : '');
   const endFormatDate = (0,_utils_date_js__WEBPACK_IMPORTED_MODULE_0__.humanizeOrderData)(endDate, _const_js__WEBPACK_IMPORTED_MODULE_2__.YEAR_MONTH_DAY);
   return `
     <li class="trip-events__item">
@@ -1269,7 +1266,7 @@ function createPointEditComponent({
          <div class="event__type-wrapper">
            <label class="event__type  event__type-btn" for="event-type-toggle-1">
              <span class="visually-hidden">Choose event type</span>
-             <img class="event__type-icon" width="17" height="17" src="img/icons/${typePoints.toLowerCase()}.png" alt="Event type icon">
+             <img class="event__type-icon" width="17" height="17" src="img/icons/${typePoint.toLowerCase()}.png" alt="Event type icon">
            </label>
            <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox">
 
@@ -1280,9 +1277,9 @@ function createPointEditComponent({
 
          <div class="event__field-group  event__field-group--destination">
            <label class="event__label  event__type-output" for="event-destination-1">
-            ${typePoints}
+            ${typePoint}
            </label>
-           <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${selectDestinations.name}" list="destination-list-1">
+           <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${selectDestination.name}" list="destination-list-1">
            <datalist id="destination-list-1">
             ${allDestinations.map(destination => createTitleDestinationsTemplate(destination.name, destination.id)).join('')}
            </datalist>
@@ -1319,10 +1316,10 @@ function createPointEditComponent({
            </div>
          </section>
 
-         ${destinations !== null ? `
+         ${destinationId !== null ? `
           <section class="event__section  event__section--destination">
             <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-            <p class="event__destination-description">${selectDestinations.description}</p>
+            <p class="event__destination-description">${selectDestination.description}</p>
           </section>` : ''}
 
        </section>
@@ -1387,6 +1384,13 @@ class EventEditView extends _framework_view_abstract_stateful_view_js__WEBPACK_I
   }) {
     this.updateElement(EventEditView.parsePointToState(point, checkedOffers, offers, destinations));
   }
+  removeElement() {
+    super.removeElement();
+    if (this.#datePicker) {
+      this.#datePicker.destroy();
+      this.#datePicker = null;
+    }
+  }
   #selectingDestinations(name) {
     this.#selectDestination = this.#destinations.find(destination => destination.name === name);
   }
@@ -1421,14 +1425,14 @@ class EventEditView extends _framework_view_abstract_stateful_view_js__WEBPACK_I
   #onSelectTypePointClick = evt => {
     if (evt.target.closest('.event__type-label')) {
       this.updateElement({
-        typePoints: this._state.typePoints = evt.target.textContent
+        typePoint: evt.target.textContent
       });
     }
   };
   #onSelectDestinationsClick = evt => {
     this.#selectingDestinations(evt.target.value);
     this.updateElement({
-      destinations: this._state.destinations = this.#selectDestination.id
+      destinationId: this.#selectDestination.id
     });
   };
   #onEditPointSubmit = evt => {
@@ -1671,10 +1675,9 @@ function createTemplateOffer(offer) {
     </li>
   `;
 }
-function createOrderTemplate(point, offers) {
+function createOrderTemplate(point, offers, destination) {
   const {
-    typePoints,
-    title,
+    typePoint,
     startDate,
     endDate,
     price,
@@ -1682,14 +1685,15 @@ function createOrderTemplate(point, offers) {
   } = point;
   const formatStartTime = (0,_utils_date_js__WEBPACK_IMPORTED_MODULE_0__.humanizeOrderData)(startDate, _const_js__WEBPACK_IMPORTED_MODULE_1__.TIME_FORMAT_H_M);
   const formatEndTime = (0,_utils_date_js__WEBPACK_IMPORTED_MODULE_0__.humanizeOrderData)(endDate, _const_js__WEBPACK_IMPORTED_MODULE_1__.TIME_FORMAT_H_M);
+  const title = destination.name;
   return `
     <li class="trip-events__item">
       <div class="event">
         <time class="event__date" datetime="${startDate}">${(0,_utils_date_js__WEBPACK_IMPORTED_MODULE_0__.humanizeOrderData)(startDate)}</time>
         <div class="event__type">
-          <img class="event__type-icon" width="42" height="42" src="img/icons/${typePoints.toLowerCase()}.png" alt="Event type icon">
+          <img class="event__type-icon" width="42" height="42" src="img/icons/${typePoint.toLowerCase()}.png" alt="Event type icon">
         </div>
-        <h3 class="event__title">${typePoints} ${title}</h3>
+        <h3 class="event__title">${typePoint} ${title}</h3>
         <div class="event__schedule">
           <p class="event__time">
             <time class="event__start-time" datetime="${startDate}">${formatStartTime}</time>
@@ -1721,27 +1725,27 @@ function createOrderTemplate(point, offers) {
 class PointView extends _framework_view_abstract_view_js__WEBPACK_IMPORTED_MODULE_2__["default"] {
   #point = null;
   #checkedOffers = null;
-  #destinations = null;
+  #destination = null;
   #handlerEditClick = null;
   #handlerChangeFavoriteClick = null;
   constructor({
     point,
     checkedOffers,
-    destinations,
+    destination,
     onEditPointClick,
     onFavoriteChangeClick
   }) {
     super();
     this.#point = point;
     this.#checkedOffers = checkedOffers;
-    this.#destinations = destinations;
+    this.#destination = destination;
     this.#handlerEditClick = onEditPointClick;
     this.#handlerChangeFavoriteClick = onFavoriteChangeClick;
     this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#onEditPointClick);
     this.element.querySelector('.event__favorite-btn').addEventListener('click', this.#onFavoriteChangeClick);
   }
   get template() {
-    return createOrderTemplate(this.#point, this.#checkedOffers, this.#destinations);
+    return createOrderTemplate(this.#point, this.#checkedOffers, this.#destination);
   }
   #onEditPointClick = evt => {
     evt.preventDefault();
@@ -1815,7 +1819,6 @@ class TripSortPointsView extends _framework_view_abstract_view_js__WEBPACK_IMPOR
       return;
     }
     this.#handlerSortByTypePoints(evt.target.dataset.sortType);
-    console.log(evt.target);
   };
 }
 
@@ -5350,4 +5353,4 @@ contentPresenter.init();
 
 /******/ })()
 ;
-//# sourceMappingURL=bundle.72b9fb163e674f081ec3.js.map
+//# sourceMappingURL=bundle.847cffaac014362ef5d9.js.map
