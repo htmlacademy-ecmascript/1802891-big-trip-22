@@ -546,7 +546,7 @@ class PointModel extends _framework_observable_js__WEBPACK_IMPORTED_MODULE_4__["
     if (index === -1) {
       throw new Error('Can\'t update unexisting task');
     }
-    this.#points = [...this.#points.slice(0, index), update, ...this.#points(index + 1)];
+    this.#points = [...this.#points.slice(0, index), update, ...this.#points.slice(index + 1)];
     this._notify(updateType, update);
   }
   addPoints(updateType, update) {
@@ -5465,4 +5465,4 @@ contentPresenter.init();
 
 /******/ })()
 ;
-//# sourceMappingURL=bundle.5cc253d9d1fbbfadb752.js.map
+//# sourceMappingURL=bundle.3bbefd824794d767ba21.js.map
