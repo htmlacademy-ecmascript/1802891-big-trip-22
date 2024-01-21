@@ -1,6 +1,7 @@
 import EditPointView from '../view/edit-point.js';
 import PointView from '../view/point.js';
 import AddPointView from '../view/add-point.js';
+import { UserAction, UpdateType } from '../const.js';
 import { render, replace, remove, RenderPosition } from '../framework/render.js';
 
 const Mode = {
@@ -17,7 +18,7 @@ export default class RenderPoint {
   #pointModel = null;
 
   #handlerModeChange = null;
-  #handlerPointUpdate = null;
+  #handlerChangeData = null;
 
   #pointData = null;
   #mode = Mode.DEFAULT;
@@ -25,7 +26,7 @@ export default class RenderPoint {
   constructor(containerListPoint, pointModel, onDateChange, onModeChange) {
     this.#containerPoint = containerListPoint;
     this.#pointModel = pointModel;
-    this.#handlerPointUpdate = onDateChange;
+    this.#handlerChangeData = onDateChange;
     this.#handlerModeChange = onModeChange;
   }
 
@@ -51,7 +52,7 @@ export default class RenderPoint {
       checkedOffers: [...this.#pointModel.getOfferById(point.typePoint, point.offers)],
       offers: [...this.#pointModel.offers],
       destinations: this.#pointModel.destinations,
-      onFormSubmit: this.#handlerFormSubmit,
+      onFormSubmit: this.#handlerFormEditSubmit,
       onCloseEditClick: this.#handlerCloseEdit,
     });
 
@@ -122,10 +123,14 @@ export default class RenderPoint {
   };
 
   //handlers
-  #handlerFormSubmit = (point) => {
+  #handlerFormEditSubmit = (point) => {
     this.#handlerSwapPointToEditClick();
     document.addEventListener('keydown', this.#escKeyDownHandler);
-    //this.#handlerPointUpdate(point);
+    this.#handlerChangeData(
+      UserAction.UPDATE_POINT,
+      UpdateType.PATCH,
+      point
+    );
   };
 
   #handlerCloseEdit = () => {
@@ -142,7 +147,11 @@ export default class RenderPoint {
   };
 
   #handlerChangeFavoriteClick = () => {
-    this.#handlerPointUpdate({...this.#pointData, isFavourite: !this.#pointData.isFavourite});
+    this.#handlerChangeData(
+      UserAction.UPDATE_POINT,
+      UpdateType.MINOR,
+      {...this.#pointData, isFavourite: !this.#pointData.isFavourite}
+    );
   };
 
   destroy() {

@@ -113,7 +113,7 @@ function createListEvents({ typePoint, destination, startDate, endDate, offersBy
 export default class TripEventsListView extends AbstractStatefulView{
   #destinations = null;
   #selectDestination = null;
-  #handlerCloseFormClick = null;
+  #handlerSaveChangeDataClick = null;
   #handlerClosePointClick = null;
   #datePicker = null;
 
@@ -122,7 +122,7 @@ export default class TripEventsListView extends AbstractStatefulView{
     this.#destinations = destinations;
     this._setState(TripEventsListView.parsePointToState(offers, destinations));
     this.#handlerClosePointClick = handlerClosePointClick;
-    this.#handlerCloseFormClick = onFormSubmit;
+    this.#handlerSaveChangeDataClick = onFormSubmit;
 
     this._restoreHandlers();
   }
@@ -138,29 +138,6 @@ export default class TripEventsListView extends AbstractStatefulView{
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#onClosePointClick);
     this.#setStartDatePicker();
     this.#setEndDatePicker();
-  }
-
-  static parsePointToState(offers, destinations) {
-    return {
-      typePoint: null,
-      title: null,
-      startDate: null,
-      endDate: null,
-      price: null,
-      destination: null,
-      offersByType: offers,
-      allDestinations: destinations,
-    };
-  }
-
-  static parseStateToPoint(state) {
-    const point = {...state};
-
-    delete point.checkedOffers;
-    delete point.offersByType;
-    delete point.destinations;
-
-    return point;
   }
 
   reset({offers, destinations}) {
@@ -190,7 +167,7 @@ export default class TripEventsListView extends AbstractStatefulView{
 
   #onEditPointSubmit = (evt) => {
     evt.preventDefault();
-    this.#handlerCloseFormClick();
+    this.#handlerSaveChangeDataClick(TripEventsListView.parseStateToPoint(this._state));
   };
 
   #onClosePointClick = (evt) => {
@@ -235,4 +212,27 @@ export default class TripEventsListView extends AbstractStatefulView{
       endDate: date,
     });
   };
+
+  static parsePointToState(offers, destinations) {
+    return {
+      typePoint: null,
+      title: null,
+      startDate: null,
+      endDate: null,
+      price: null,
+      destination: null,
+      offersByType: offers,
+      allDestinations: destinations,
+    };
+  }
+
+  static parseStateToPoint(state) {
+    const point = {...state};
+
+    delete point.checkedOffers;
+    delete point.offersByType;
+    delete point.destinations;
+
+    return point;
+  }
 }

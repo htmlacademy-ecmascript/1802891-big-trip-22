@@ -139,24 +139,6 @@ export default class EventEditView extends AbstractStatefulView {
     this.#setEndDatePicker();
   }
 
-  static parsePointToState(point, checkedOffers, offers, destinations) {
-    return {...point,
-      checkedOffers: checkedOffers,
-      offersByType: offers,
-      allDestinations: destinations,
-    };
-  }
-
-  static parseStateToPoint(state) {
-    const point = {...state};
-
-    delete point.checkedOffers;
-    delete point.offersByType;
-    delete point.allDestinations;
-
-    return point;
-  }
-
   reset({point, checkedOffers, offers, destinations}) {
     this.updateElement(
       EventEditView.parsePointToState(point, checkedOffers, offers, destinations)
@@ -220,6 +202,7 @@ export default class EventEditView extends AbstractStatefulView {
         typePoint: evt.target.textContent
       });
     }
+    console.log(this._state);
   };
 
   #onSelectDestinationsClick = (evt) => {
@@ -231,11 +214,29 @@ export default class EventEditView extends AbstractStatefulView {
 
   #onEditPointSubmit = (evt) => {
     evt.preventDefault();
-    this.#handlerSaveFormClick();
+    this.#handlerSaveFormClick(EventEditView.parseStateToPoint(this._state));
   };
 
   #onClosePointClick = (evt) => {
     evt.preventDefault();
     this.#handlerCloseFormClick();
   };
+
+  static parsePointToState(point, checkedOffers, offers, destinations) {
+    return {...point,
+      checkedOffers: checkedOffers,
+      offersByType: offers,
+      allDestinations: destinations,
+    };
+  }
+
+  static parseStateToPoint(state) {
+    const point = {...state};
+
+    delete point.checkedOffers;
+    delete point.offersByType;
+    delete point.allDestinations;
+
+    return point;
+  }
 }
