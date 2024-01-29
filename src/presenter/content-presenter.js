@@ -6,10 +6,13 @@ import { sortPointByTime, sortPointByPrice } from '../utils/point.js';
 import { SORT_TYPE } from '../const.js';
 import { render } from '../framework/render.js';
 import { updateDataItem } from '../utils/common.js';
+import HeaderPresenter from './header-presenter.js';
 
 export default class contentPresenter {
   #tripList = new TripEvensListView();
   #noPointComponent = new NoPointView();
+  #pointPresenter = null;
+  #headerPresenter = null;
   #sortPointView = null;
 
   #contentContainer = null;
@@ -20,7 +23,7 @@ export default class contentPresenter {
 
   #pointPresenters = new Map();
 
-  constructor({contentContainer, pointModel}) {
+  constructor({contentContainer, pointModel }) {
     this.#contentContainer = contentContainer;
     this.#pointModel = pointModel;
   }
@@ -28,7 +31,7 @@ export default class contentPresenter {
   init() {
     this.#dataPoints = [...this.#pointModel.points];
     this.#sourcedDataPoints = [...this.#pointModel.points];
-
+    this.#renderHeader();
     this.#renderContents();
   }
 
@@ -47,12 +50,18 @@ export default class contentPresenter {
     this.#renderPoints();
   }
 
+  #renderHeader() {
+    this.#headerPresenter = new HeaderPresenter(this.#handlerOpenAddPoint);
+    this.#headerPresenter.init();
+  }
+
+
   #renderPoints() {
     for (const dataPoint of this.#dataPoints) {
-      const pointPresenter = new PointPresenter(this.#tripList.element, this.#pointModel, this.#handlerPointChange, this.#handlerModeChange);
-      pointPresenter.init(dataPoint);
+      this.#pointPresenter = new PointPresenter(this.#tripList.element, this.#pointModel, this.#handlerPointChange, this.#handlerModeChange);
+      this.#pointPresenter.init(dataPoint);
 
-      this.#pointPresenters.set(dataPoint.id, pointPresenter);
+      this.#pointPresenters.set(dataPoint.id, this.#pointPresenter);
     }
   }
 
@@ -94,10 +103,13 @@ export default class contentPresenter {
     if (this.#currentTypeSort === sortType) {
       return;
     }
-    console.log('rr');
     this.#sortPoint(sortType);
     this.#clearPoints();
     this.#renderPoints();
+  };
+
+  #handlerOpenAddPoint = () => {
+    this.#pointPresenter.renderPointAdd();
   };
 
   #clearPoints = () => {

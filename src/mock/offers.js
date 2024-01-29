@@ -1,6 +1,6 @@
 export const mockOffers = [
   {
-    type: 'taxi',
+    type: 'Taxi',
     offers: [
       {
         id:'11',
@@ -23,14 +23,14 @@ export const mockOffers = [
         price: '5',
       },
       {
-        id:'14',
+        id:'15',
         title: 'Travel by train',
         price: '5',
       }
     ]
   },
   {
-    type: 'bus',
+    type: 'Bus',
     offers: [
       {
         id:'21',
@@ -41,11 +41,16 @@ export const mockOffers = [
         id:'22',
         title: 'Add luggage',
         price: '50',
-      }
+      },
+      {
+        id:'23',
+        title: 'Choose seats',
+        price: '5',
+      },
     ]
   },
   {
-    type: 'ship',
+    type: 'Ship',
     offers: [
       {
         id:'31',
@@ -56,11 +61,16 @@ export const mockOffers = [
         id:'32',
         title: 'Add luggage',
         price: '50',
+      },
+      {
+        id:'33',
+        title: 'Travel by train',
+        price: '5',
       }
     ]
   },
   {
-    type: 'sightseeing',
+    type: 'Sightseeing',
     offers: []
   },
 ];

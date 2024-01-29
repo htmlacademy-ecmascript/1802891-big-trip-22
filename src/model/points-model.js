@@ -12,6 +12,14 @@ export default class PointModel {
     return this.#orders;
   }
 
+  get offers() {
+    return this.#offers;
+  }
+
+  get destinations() {
+    return this.#destinations;
+  }
+
   getOfferByType(type) {
     const allOffers = this.#offers;
     return allOffers.find((offer) => offer.type === type);

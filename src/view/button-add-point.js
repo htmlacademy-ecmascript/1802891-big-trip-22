@@ -9,20 +9,20 @@ function addPointButtonTemplate() {
 }
 
 export default class ButtonAddPointView extends AbstractView{
-  // #handClick = null;
+  #handlerOpenPointClick = null;
 
-  // constructor({onClick}) {
-  //   super();
-  //   this.#handClick = onClick;
-  //   this.element.addEventListener('click', this.#clickButton);
-  // }
+  constructor(onButtonClick) {
+    super();
+    this.#handlerOpenPointClick = onButtonClick;
+    this.element.addEventListener('click', this.#clickButton);
+  }
 
   get template() {
     return addPointButtonTemplate();
   }
 
-  // #clickButton = (evt) => {
-  //   evt.preventDefault();
-  //   this.#handClick();
-  // };
+  #clickButton = (evt) => {
+    evt.preventDefault();
+    this.#handlerOpenPointClick();
+  };
 }
