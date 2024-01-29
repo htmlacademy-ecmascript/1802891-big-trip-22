@@ -3,12 +3,11 @@ import { nanoid } from 'nanoid';
 
 const mockOrders = [
   {
-    typePoints: 'Taxi',
-    title: 'Geneva',
+    typePoint: 'Taxi',
     startDate: new Date('2023-09-11T10:30:00'),
     endDate: new Date('2023-09-11T11:00:00'),
     price: 145,
-    destinations: '1',
+    destinationId: '1',
     offers: [
       '11',
       '12',
@@ -17,12 +16,11 @@ const mockOrders = [
     isFavourite: true,
   },
   {
-    typePoints: 'Bus',
-    title: 'Amsterdam',
+    typePoint: 'Bus',
     startDate: new Date('2023-12-12T10:30'),
     endDate: new Date('2023-12-12T12:00'),
     price: 65,
-    destinations: '2',
+    destinationId: '2',
     offers: [
       '21',
       '22'
@@ -30,12 +28,11 @@ const mockOrders = [
     isFavourite: false,
   },
   {
-    typePoints: 'Sightseeing',
-    title: 'Moscow',
+    typePoint: 'Sightseeing',
     startDate: new Date('2023-12-12T23:30'),
     endDate: new Date('2023-12-12T23:40'),
     price: 50,
-    destinations: '3',
+    destinationId: '3',
     offers: [],
     isFavourite: false,
   },

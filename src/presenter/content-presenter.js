@@ -103,8 +103,8 @@ export default class contentPresenter {
     if (this.#currentTypeSort === sortType) {
       return;
     }
-    this.#sortPoint(sortType);
     this.#clearPoints();
+    this.#sortPoint(sortType);
     this.#renderPoints();
   };
 

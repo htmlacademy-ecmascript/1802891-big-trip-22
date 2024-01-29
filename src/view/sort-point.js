@@ -50,6 +50,5 @@ export default class TripSortPointsView extends AbstractView{
       return;
     }
     this.#handlerSortByTypePoints(evt.target.dataset.sortType);
-    console.log(evt.target);
   };
 }

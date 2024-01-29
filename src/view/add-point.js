@@ -1,4 +1,7 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
+import flatpickr from 'flatpickr';
+
+import 'flatpickr/dist/flatpickr.min.css';
 
 function listType(type) {
   return `
@@ -31,9 +34,9 @@ function createTitleDestinationsTemplate(title, id) {
   return `<option value="${title}" data-id="${id}">${title}</option>`;
 }
 
-function createListEvents({ typePoints, destinations, offersByType, allDestinations}) {
-  const selectDestinations = allDestinations.find((destination) => destination.id === destinations);
-  const selectType = offersByType.find((offer) => offer.type === typePoints ? offer : '');
+function createListEvents({ typePoint, destination, startDate, endDate, offersByType, allDestinations}) {
+  const selectDestination = allDestinations.find((selectedDestination) => selectedDestination.id === destination);
+  const selectType = offersByType.find((offer) => offer.type === typePoint ? offer : '');
   return `
     <li class="trip-events__item">
       <form class="event event--edit" action="#" method="post">
@@ -41,7 +44,7 @@ function createListEvents({ typePoints, destinations, offersByType, allDestinati
           <div class="event__type-wrapper">
             <label class="event__type  event__type-btn" for="event-type-toggle-1">
               <span class="visually-hidden">Choose event type</span>
-              <img class="event__type-icon" width="17" height="17" src="img/icons/${typePoints !== null ? typePoints.toLowerCase() : 'Taxi'}.png" alt="Event type icon">
+              <img class="event__type-icon" width="17" height="17" src="img/icons/${typePoint !== null ? typePoint.toLowerCase() : 'Taxi'}.png" alt="Event type icon">
             </label>
             <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox">
 
@@ -52,20 +55,20 @@ function createListEvents({ typePoints, destinations, offersByType, allDestinati
 
           <div class="event__field-group  event__field-group--destination">
             <label class="event__label  event__type-output" for="event-destination-1">
-              ${typePoints !== null ? typePoints : 'Taxi'}
+              ${typePoint !== null ? typePoint : 'Taxi'}
             </label>
-            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destinations !== null ? selectDestinations.name : ''}" list="destination-list-1">
+            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destination !== null ? selectDestination.name : ''}" list="destination-list-1">
             <datalist id="destination-list-1">
-              ${allDestinations.map((destination) => createTitleDestinationsTemplate(destination.name, destination.id)).join('')}
+              ${allDestinations.map((selectedDestination) => createTitleDestinationsTemplate(selectedDestination.name, selectedDestination.id)).join('')}
             </datalist>
           </div>
 
           <div class="event__field-group  event__field-group--time">
             <label class="visually-hidden" for="event-start-time-1">From</label>
-            <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="">
+            <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${startDate !== null ? startDate : ''}">
             &mdash;
             <label class="visually-hidden" for="event-end-time-1">To</label>
-            <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="">
+            <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${endDate !== null ? endDate : ''}">
           </div>
 
           <div class="event__field-group  event__field-group--price">
@@ -81,7 +84,7 @@ function createListEvents({ typePoints, destinations, offersByType, allDestinati
         </header>
 
         <section class="event__details">
-            ${typePoints !== null ? `
+            ${typePoint !== null ? `
               <section class="event__section  event__section--offers">
               <h3 class="event__section-title  event__section-title--offers">Offers</h3>
 
@@ -89,14 +92,14 @@ function createListEvents({ typePoints, destinations, offersByType, allDestinati
                 ${selectType.offers.map((offer) => createTemplateOffer(offer)).join('')}
               </div>` : ''}
           </section>
-          ${destinations !== null ? `
+          ${destination !== null ? `
           <section class="event__section  event__section--destination">
             <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-            <p class="event__destination-description">${selectDestinations.description}</p>
+            <p class="event__destination-description">${selectDestination.description}</p>
 
             <div class="event__photos-container">
               <div class="event__photos-tape">
-                ${selectDestinations.pictures.map((picture) => createPicturesDestinationsTemplate(picture))}
+                ${selectDestination.pictures.map((picture) => createPicturesDestinationsTemplate(picture))}
               </div>
             </div>
           </section>` : ''}
@@ -112,6 +115,7 @@ export default class TripEventsListView extends AbstractStatefulView{
   #selectDestination = null;
   #handlerCloseFormClick = null;
   #handlerClosePointClick = null;
+  #datePicker = null;
 
   constructor({offers, destinations, handlerClosePointClick, onFormSubmit }) {
     super();
@@ -132,16 +136,18 @@ export default class TripEventsListView extends AbstractStatefulView{
     this.element.addEventListener('click', this.#onSelectTypePointClick);
     this.element.querySelector('.event__input').addEventListener('change', this.#onSelectDestinationsClick);
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#onClosePointClick);
+    this.#setStartDatePicker();
+    this.#setEndDatePicker();
   }
 
   static parsePointToState(offers, destinations) {
     return {
-      typePoints: null,
+      typePoint: null,
       title: null,
       startDate: null,
       endDate: null,
       price: null,
-      destinations: null,
+      destination: null,
       offersByType: offers,
       allDestinations: destinations,
     };
@@ -157,9 +163,9 @@ export default class TripEventsListView extends AbstractStatefulView{
     return point;
   }
 
-  reset(point) {
+  reset({offers, destinations}) {
     this.updateElement(
-      TripEventsListView.parsePointToState(point)
+      TripEventsListView.parsePointToState(offers, destinations)
     );
   }
 
@@ -190,5 +196,43 @@ export default class TripEventsListView extends AbstractStatefulView{
   #onClosePointClick = (evt) => {
     evt.preventDefault();
     this.#handlerClosePointClick();
+  };
+
+  #setStartDatePicker() {
+    this.#datePicker = flatpickr(
+      this.element.querySelector('#event-start-time-1'),
+      {
+        dateFormat: 'y/m/d h:i',
+        enableTime: true,
+        maxDate: this._state.endDate,
+        defaultDate: this._state.startDate,
+        onChange: this.#onStartDateChange,
+      },
+    );
+  }
+
+  #setEndDatePicker() {
+    this.#datePicker = flatpickr(
+      this.element.querySelector('#event-end-time-1'),
+      {
+        dateFormat: 'y/m/d h:i',
+        enableTime: true,
+        minDate: this._state.startDate,
+        defaultDate: this._state.endDate,
+        onChange: this.#onEndDateChange,
+      },
+    );
+  }
+
+  #onStartDateChange = ([date]) => {
+    this.updateElement({
+      startDate: date,
+    });
+  };
+
+  #onEndDateChange = ([date]) => {
+    this.updateElement({
+      endDate: date,
+    });
   };
 }

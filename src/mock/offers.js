@@ -5,27 +5,27 @@ export const mockOffers = [
       {
         id:'11',
         title: 'Add meal',
-        price: '12',
+        price: 12,
       },
       {
         id:'12',
         title: 'Add luggage',
-        price: '50',
+        price: 50,
       },
       {
         id:'13',
         title: 'Order Uber',
-        price: '20',
+        price: 20,
       },
       {
         id:'14',
         title: 'Choose seats',
-        price: '5',
+        price: 5,
       },
       {
         id:'15',
         title: 'Travel by train',
-        price: '5',
+        price: 5,
       }
     ]
   },
@@ -35,17 +35,17 @@ export const mockOffers = [
       {
         id:'21',
         title: 'Add meal',
-        price: '12',
+        price: 12,
       },
       {
         id:'22',
         title: 'Add luggage',
-        price: '50',
+        price: 50,
       },
       {
         id:'23',
         title: 'Choose seats',
-        price: '5',
+        price: 5,
       },
     ]
   },
@@ -55,17 +55,17 @@ export const mockOffers = [
       {
         id:'31',
         title: 'Add meal',
-        price: '12',
+        price: 12,
       },
       {
         id:'32',
         title: 'Add luggage',
-        price: '50',
+        price: 50,
       },
       {
         id:'33',
         title: 'Travel by train',
-        price: '5',
+        price: 5,
       }
     ]
   },
