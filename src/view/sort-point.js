@@ -1,11 +1,11 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import { SORT_TYPE } from '../const.js';
 
-function createTripSortContent() {
+function createTripSortContent(currentTypeSort) {
   return `
   <form class="trip-events__trip-sort  trip-sort" action="#" method="get">
     <div class="trip-sort__item  trip-sort__item--day">
-      <input id="sort-day" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="sort-${SORT_TYPE.DAY}" checked>
+      <input id="sort-day" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="sort-${SORT_TYPE.DAY}" ${currentTypeSort === SORT_TYPE.DAY ? 'checked' : ''}>
       <label class="trip-sort__btn" for="sort-day" data-sort-type="${SORT_TYPE.DAY}">Day</label>
     </div>
 
@@ -15,12 +15,12 @@ function createTripSortContent() {
     </div>
 
     <div class="trip-sort__item  trip-sort__item--time">
-      <input id="sort-time" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="sort-${SORT_TYPE.TIME}">
+      <input id="sort-time" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="sort-${SORT_TYPE.TIME}" ${currentTypeSort === SORT_TYPE.TIME ? 'checked' : ''}>
       <label class="trip-sort__btn" for="sort-time" data-sort-type="${SORT_TYPE.TIME}">Time</label>
     </div>
 
     <div class="trip-sort__item  trip-sort__item--price">
-      <input id="sort-price" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="sort-${SORT_TYPE.PRICE}">
+      <input id="sort-price" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="sort-${SORT_TYPE.PRICE}" ${currentTypeSort === SORT_TYPE.PRICE ? 'checked' : ''}>
       <label class="trip-sort__btn" for="sort-price" data-sort-type="${SORT_TYPE.PRICE}">Price</label>
     </div>
 
@@ -34,15 +34,17 @@ function createTripSortContent() {
 
 export default class TripSortPointsView extends AbstractView{
   #handlerSortByTypePoints = null;
-  constructor(onSortTypePointsChange) {
+  #currentTypeSort = null;
+  constructor(onSortTypePointsChange, currentTypeSort) {
     super();
     this.#handlerSortByTypePoints = onSortTypePointsChange;
+    this.#currentTypeSort = currentTypeSort;
 
-    this.element.addEventListener('click', this.#sortTypePoints);//ошибка с querySelectorAll
+    this.element.addEventListener('click', this.#sortTypePoints);
   }
 
   get template() {
-    return createTripSortContent();
+    return createTripSortContent(this.#currentTypeSort);
   }
 
   #sortTypePoints = (evt) => {

@@ -77,7 +77,7 @@ function createPointEditComponent({typePoint, destinationId, startDate, endDate,
              <span class="visually-hidden">Price</span>
              &euro;
            </label>
-           <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${price}">
+           <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price" value="${price ? price : ''}">
          </div>
 
          <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
@@ -112,15 +112,17 @@ export default class EventEditView extends AbstractStatefulView {
   #destinations = null;
   #selectDestination = null;
   #handlerCloseFormClick = null;
+  #handelDeletePointSubmit = null;
 
   #datePicker = null;
 
-  constructor({point, checkedOffers, offers, destinations, onFormSubmit, onCloseEditClick }) {
+  constructor({point, checkedOffers, offers, destinations, onFormSubmit, onCloseEditClick, onDeletePointSubmit }) {
     super();
     this.#destinations = destinations;
     this._setState(EventEditView.parsePointToState(point, checkedOffers, offers, destinations));
     this.#handlerSaveFormClick = onFormSubmit;
     this.#handlerCloseFormClick = onCloseEditClick;
+    this.#handelDeletePointSubmit = onDeletePointSubmit;
 
 
     this._restoreHandlers();
@@ -131,10 +133,12 @@ export default class EventEditView extends AbstractStatefulView {
   }
 
   _restoreHandlers() {
-    this.element.querySelector('.event__save-btn').addEventListener('click', this.#onEditPointSubmit);
+    this.element.addEventListener('submit', this.#onSaveEditPointSubmit); // вопрос
+    this.element.querySelector('.event__reset-btn').addEventListener('click', this.#onDeletePointSubmit);
     this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#onClosePointClick);
     this.element.querySelector('.event__type-wrapper').addEventListener('click', this.#onSelectTypePointClick);
     this.element.querySelector('.event__input').addEventListener('change', this.#onSelectDestinationsClick);
+    this.element.querySelector('.event__input--price').addEventListener('keydown', this.#onSelectPriceKey);
     this.#setStartDatePicker();
     this.#setEndDatePicker();
   }
@@ -165,7 +169,7 @@ export default class EventEditView extends AbstractStatefulView {
         dateFormat: 'y/m/d h:i',
         enableTime: true,
         maxDate: this._state.endDate,
-        defaultDate: this._state.startDate,
+        defaultDate: humanizeOrderData(this._state.startDate),
         onChange: this.#onStartDateChange,
       },
     );
@@ -202,7 +206,6 @@ export default class EventEditView extends AbstractStatefulView {
         typePoint: evt.target.textContent
       });
     }
-    console.log(this._state);
   };
 
   #onSelectDestinationsClick = (evt) => {
@@ -212,13 +215,21 @@ export default class EventEditView extends AbstractStatefulView {
     });
   };
 
-  #onEditPointSubmit = (evt) => {
+  #onSelectPriceKey = (evt) => {
+    this._state.price = evt.target.value;
+  };
+
+  #onSaveEditPointSubmit = (evt) => {
     evt.preventDefault();
     this.#handlerSaveFormClick(EventEditView.parseStateToPoint(this._state));
   };
 
-  #onClosePointClick = (evt) => {
+  #onDeletePointSubmit = (evt) => {
     evt.preventDefault();
+    this.#handelDeletePointSubmit(EventEditView.parseStateToPoint(this._state));
+  };
+
+  #onClosePointClick = () => {
     this.#handlerCloseFormClick();
   };
 

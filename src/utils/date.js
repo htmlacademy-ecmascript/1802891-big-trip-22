@@ -1,7 +1,6 @@
 import Dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import { MONTH_DATA_FORMAT, TIME_FORMAT_M, TIME_FORMAT_H, TIME_FORMAT_D } from '../const.js';
-import Flatpickr from 'flatpickr';
+import { MONTH_DATA_FORMAT, TIME_FORMAT_M, TIME_FORMAT_H, TIME_FORMAT_D, YEAR_MONTH_DAY } from '../const.js';
 
 Dayjs.extend(utc);
 
@@ -21,4 +20,8 @@ function dateSubtract(dateEnd, dateStart) {
   return totalData;
 }
 
-export { humanizeOrderData, dateSubtract };
+function isDatesEqual(dateA, dateB) {
+  return (dateA === null && dateB === null) || Dayjs(dateA).isSame(dateB, YEAR_MONTH_DAY);
+}
+
+export { humanizeOrderData, dateSubtract, isDatesEqual };

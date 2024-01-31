@@ -19,10 +19,17 @@ const UpdateType = {
   MAJOR: 'MAJOR',
 };
 
-const SORT_TYPE = {
+const SortType = {
   DAY: 'day',
   TIME: 'time',
   PRICE: 'price',
 };
 
-export { UserAction, UpdateType, MONTH_DATA_FORMAT, YEAR_MONTH_DAY, TIME_FORMAT_H_M, POINT_COUNT, TIME_FORMAT_M, TIME_FORMAT_H, TIME_FORMAT_D, SORT_TYPE };
+const FilterType = {
+  EVERYTHING: 'everything',
+  FUTURE: 'future',
+  PRESENT: 'present',
+  PAST: 'past',
+};
+
+export { UserAction, UpdateType, MONTH_DATA_FORMAT, YEAR_MONTH_DAY, TIME_FORMAT_H_M, POINT_COUNT, TIME_FORMAT_M, TIME_FORMAT_H, TIME_FORMAT_D, SortType as SORT_TYPE, FilterType };
