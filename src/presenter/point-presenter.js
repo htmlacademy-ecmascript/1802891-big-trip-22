@@ -4,6 +4,7 @@ import AddPointView from '../view/add-point.js';
 import { UserAction, UpdateType } from '../const.js';
 import { isDatesEqual } from '../utils/date.js';
 import { render, replace, remove, RenderPosition } from '../framework/render.js';
+import { nanoid } from 'nanoid';
 
 const Mode = {
   DEFAULT: 'DEFAULT',
@@ -173,7 +174,7 @@ export default class RenderPoint {
         offers: [...this.#pointModel.offers],
         destinations: this.#pointModel.destinations,
         handlerClosePointClick: this.#onClosePointAddClick,
-        //onFormSubmit: this.#handlerFormSubmit,
+        onFormSubmit: this.#onSaveNewPointSubmit,
       });
       render(this.#addPointView, this.#containerPoint, RenderPosition.AFTERBEGIN);
     }
@@ -187,5 +188,13 @@ export default class RenderPoint {
       destinations: this.#pointModel.destinations
     });
     this.#addPointView = null;
+  };
+
+  #onSaveNewPointSubmit = (point) => {
+    this.#handlerChangeData(
+      UserAction.ADD_POINT,
+      UpdateType.MINOR,
+      {id: nanoid(), ...point},
+    );
   };
 }

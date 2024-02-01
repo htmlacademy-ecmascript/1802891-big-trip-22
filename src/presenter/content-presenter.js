@@ -3,25 +3,20 @@ import SortPointView from '../view/sort-point.js';
 import NoPointView from '../view/list-point-empty.js';
 import PointPresenter from './point-presenter.js';
 import { sortPointByTime, sortPointByPrice } from '../utils/point.js';
-import { SORT_TYPE, UpdateType, UserAction } from '../const.js';
+import { SortType, UpdateType, UserAction, FilterType } from '../const.js';
 import { remove, render } from '../framework/render.js';
 import HeaderPresenter from './header-presenter.js';
 import { RenderPosition } from '../framework/render.js';
+import { filter } from '../utils/filter.js';
 
 const ModeAddPoint = {
   OPEN: 'OPEN',
   CLOSE: 'CLOSE',
 };
 
-const filters = [
-  {
-    type: 'everyThing',
-  }
-];
-
 export default class contentPresenter {
   #tripList = new TripEvensListView();
-  #noPointComponent = new NoPointView();
+  #noPointComponent = null;
   #pointPresenter = null;
   #headerPresenter = null;
   #sortPointView = null;
@@ -30,7 +25,8 @@ export default class contentPresenter {
   #pointModel = null;
   #filterModel = null;
   #modeAddPoint = ModeAddPoint.CLOSE;
-  #currentTypeSort = SORT_TYPE.DAY;
+  #currentTypeSort = SortType.DAY;
+  #filterType = FilterType.EVERYTHING;
 
   #pointPresenters = new Map();
 
@@ -40,14 +36,19 @@ export default class contentPresenter {
     this.#filterModel = filterModel;
 
     this.#pointModel.addObserver(this.#handleModelEvent);
+    this.#filterModel.addObserver(this.#handleModelEvent);
   }
 
   get points() {
+    this.#filterType = this.#filterModel.filter;
+    const point = this.#pointModel.points;
+    const filteredPoints = filter[this.#filterType](point);
+
     switch (this.#currentTypeSort) {
-      case `${SORT_TYPE.TIME}`:
-        return [...this.#pointModel.points.sort(sortPointByTime)];
-      case `${SORT_TYPE.PRICE}`:
-        return [...this.#pointModel.points.sort(sortPointByPrice)];
+      case SortType.TIME:
+        return filteredPoints.sort(sortPointByTime);
+      case SortType.PRICE:
+        return filteredPoints.sort(sortPointByPrice);
     }
 
     return this.#pointModel.points;
@@ -59,6 +60,9 @@ export default class contentPresenter {
   }
 
   #renderNoPoint() {
+    this.#noPointComponent = new NoPointView({
+      filterType: this.#filterType,
+    });
     render(this.#noPointComponent, this.#contentContainer);
   }
 
@@ -70,26 +74,22 @@ export default class contentPresenter {
 
     this.#renderSortPoints();
     render(this.#tripList, this.#contentContainer);
-    this.#renderPoints(this.points);
+    this.#renderPoints(this.#pointModel.points);
   }
 
-  #renderHeader(modeAddPoint) {
+  #renderHeader() {
     this.#headerPresenter = new HeaderPresenter({
-      handlerOpenAddPoint:this.#handlerOpenAddPoint,
-      modeAddPoint: modeAddPoint,
+      handlerOpenAddPoint: this.#handlerOpenAddPoint,
       filtersModel: this.#filterModel,
       pointModel: this.#pointModel,
-      // filters: filters,
-      // currentFilterType: 'everyThing',
-      // onFilterTypeChange: () => {}
     });
     this.#headerPresenter.init();
     this.#headerPresenter.initFilters();
   }
 
 
-  #renderPoints(tasks) {
-    for (const dataPoint of tasks) {
+  #renderPoints(points) {
+    for (const dataPoint of points) {
       this.#pointPresenter = new PointPresenter(this.#tripList.element, this.#pointModel, this.#handleViewAction, this.#handlerModeChange, this.#modeAddPoint);
       this.#pointPresenter.init(dataPoint);
 
@@ -144,7 +144,7 @@ export default class contentPresenter {
     remove(this.#noPointComponent);
 
     if (resetSortType) {
-      this.#currentTypeSort = SORT_TYPE.DAY;
+      this.#currentTypeSort = SortType.DAY;
     }
   }
 

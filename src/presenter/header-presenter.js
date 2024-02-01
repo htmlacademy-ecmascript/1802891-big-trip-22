@@ -14,7 +14,6 @@ export default class HeaderPresenter {
 
 
   #handlerOpenPointClick = null;
-  #modeAddPoint = null;
   #filtersModel = null;
   #pointModel = null;
 
@@ -22,9 +21,8 @@ export default class HeaderPresenter {
   #containerFilters = null;
   #filterComponent = null;
 
-  constructor({onOpenPointClick, modeAddPoint, filtersModel, pointModel}) {
-    this.#handlerOpenPointClick = onOpenPointClick;
-    this.#modeAddPoint = modeAddPoint;
+  constructor({handlerOpenAddPoint, filtersModel, pointModel}) {
+    this.#handlerOpenPointClick = handlerOpenAddPoint;
     this.#filtersModel = filtersModel;
     this.#pointModel = pointModel;
 
@@ -45,7 +43,7 @@ export default class HeaderPresenter {
     render(this.#tripWrapperContent, this.#tripContainer.element, RenderPosition.AFTERBEGIN);
     render(new InfoTitleView(), this.#tripWrapperContent.element);
     render(new InfoDataView(), this.#tripWrapperContent.element);
-    render(new ButtonAddPointView(this.#handlerOpenPointClick, this.#modeAddPoint), this.#headerContainer);
+    render(new ButtonAddPointView(this.#handlerOpenPointClick), this.#headerContainer);
   }
 
   initFilters() {
@@ -73,7 +71,7 @@ export default class HeaderPresenter {
   };
 
   #handlerFilterTypeChange = (filterType) => {
-    if (this.filtersModel.filter === filterType) {
+    if (this.#filtersModel.filter === filterType) {
       return;
     }
 

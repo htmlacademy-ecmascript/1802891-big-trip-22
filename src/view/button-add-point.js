@@ -1,8 +1,8 @@
 import AbstractView from '../framework/view/abstract-view';
 
-function addPointButtonTemplate(mode) {
+function addPointButtonTemplate() {
   return `
-  <button class="trip-main__event-add-btn  btn  btn--big  btn--yellow" type="button" ${mode === 'OPEN' ? 'disabled' : ''}>
+  <button class="trip-main__event-add-btn  btn  btn--big  btn--yellow" type="button"}>
     New event
   </button>
   `;
@@ -12,15 +12,14 @@ export default class ButtonAddPointView extends AbstractView{
   #handlerOpenPointClick = null;
   #modeAddPoint = null;
 
-  constructor(onButtonClick, modeAddPoint) {
+  constructor(onButtonClick) {
     super();
     this.#handlerOpenPointClick = onButtonClick;
     this.element.addEventListener('click', this.#clickButton);
-    this.#modeAddPoint = modeAddPoint;
   }
 
   get template() {
-    return addPointButtonTemplate(this.#modeAddPoint);
+    return addPointButtonTemplate();
   }
 
   #clickButton = (evt) => {

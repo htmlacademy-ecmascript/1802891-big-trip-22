@@ -58,7 +58,7 @@ function createPointEditComponent({typePoint, destinationId, startDate, endDate,
            <label class="event__label  event__type-output" for="event-destination-1">
             ${typePoint}
            </label>
-           <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${selectDestination.name}" list="destination-list-1">
+           <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${selectDestination !== undefined ? selectDestination.name : ''}" list="destination-list-1">
            <datalist id="destination-list-1">
             ${allDestinations.map((destination) => createTitleDestinationsTemplate(destination.name, destination.id)).join('')}
            </datalist>
@@ -133,12 +133,12 @@ export default class EventEditView extends AbstractStatefulView {
   }
 
   _restoreHandlers() {
-    this.element.addEventListener('submit', this.#onSaveEditPointSubmit); // вопрос
+    this.element.querySelector('.event').addEventListener('submit', this.#onSaveEditPointSubmit); // вопрос
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#onDeletePointSubmit);
     this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#onClosePointClick);
     this.element.querySelector('.event__type-wrapper').addEventListener('click', this.#onSelectTypePointClick);
     this.element.querySelector('.event__input').addEventListener('change', this.#onSelectDestinationsClick);
-    this.element.querySelector('.event__input--price').addEventListener('keydown', this.#onSelectPriceKey);
+    this.element.querySelector('.event__input--price').addEventListener('input', this.#onSelectPriceKey);
     this.#setStartDatePicker();
     this.#setEndDatePicker();
   }

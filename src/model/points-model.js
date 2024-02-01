@@ -33,7 +33,8 @@ export default class PointModel extends Observable{
 
   getDestinationsById(id) {
     const allDestinations = this.#destinations;
-    return allDestinations.find((item) => item.id === id);
+    const destination = allDestinations.find((item) => item.id === id);
+    return destination !== undefined ? destination : null;
   }
 
   updatePoint(updateType, update) {

@@ -32,4 +32,11 @@ const FilterType = {
   PAST: 'past',
 };
 
-export { UserAction, UpdateType, MONTH_DATA_FORMAT, YEAR_MONTH_DAY, TIME_FORMAT_H_M, POINT_COUNT, TIME_FORMAT_M, TIME_FORMAT_H, TIME_FORMAT_D, SortType as SORT_TYPE, FilterType };
+const NoTasksTextType = {
+  [FilterType.EVERYTHING]: 'Click New Event to create your first point',
+  [FilterType.PAST]: 'There are no past events now',
+  [FilterType.PRESENT]: 'There are no present events now',
+  [FilterType.FUTURE]: 'There are no future events now',
+};
+
+export { UserAction, UpdateType, MONTH_DATA_FORMAT, YEAR_MONTH_DAY, TIME_FORMAT_H_M, POINT_COUNT, TIME_FORMAT_M, TIME_FORMAT_H, TIME_FORMAT_D, SortType, FilterType, NoTasksTextType };

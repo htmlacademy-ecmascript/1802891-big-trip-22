@@ -9,8 +9,8 @@ function humanizeOrderData(date, format = MONTH_DATA_FORMAT) {
 }
 /**
  * Метод для рассчета времени
- * @param {data} — дата окончания мероприятия
- * @param {data} — дата начала мероприятия
+ * @param {dateEnd} — дата окончания мероприятия
+ * @param {dateStart} — дата начала мероприятия
  * @return {string} — возращает подсчитанное время в днях,часах,минутах
  */
 function dateSubtract(dateEnd, dateStart) {
@@ -20,8 +20,12 @@ function dateSubtract(dateEnd, dateStart) {
   return totalData;
 }
 
+const isDateFuture = (start) => Dayjs().isBefore(start);
+const isDatePresent = (start, end) => Dayjs().isAfter(start) && Dayjs().isBefore(end);
+const isDatePast = (end) => Dayjs().isAfter(end);
+
 function isDatesEqual(dateA, dateB) {
   return (dateA === null && dateB === null) || Dayjs(dateA).isSame(dateB, YEAR_MONTH_DAY);
 }
 
-export { humanizeOrderData, dateSubtract, isDatesEqual };
+export { humanizeOrderData, dateSubtract, isDatesEqual, isDateFuture, isDatePast, isDatePresent };
