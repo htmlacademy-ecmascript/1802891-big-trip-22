@@ -18,21 +18,19 @@ function createOrderTemplate(point, offers, destination) {
   const formatStartTime = humanizeOrderData(startDate, TIME_FORMAT_H_M);
   const formatEndTime = humanizeOrderData(endDate, TIME_FORMAT_H_M);
 
-  const title = destination.name;
-
   return `
     <li class="trip-events__item">
       <div class="event">
-        <time class="event__date" datetime="${startDate}">${humanizeOrderData(startDate)}</time>
+        <time class="event__date" datetime="${startDate !== null ? startDate : ''}">${humanizeOrderData(startDate)}</time>
         <div class="event__type">
           <img class="event__type-icon" width="42" height="42" src="img/icons/${typePoint.toLowerCase()}.png" alt="Event type icon">
         </div>
-        <h3 class="event__title">${typePoint} ${title}</h3>
+        <h3 class="event__title">${typePoint} ${destination !== null ? destination.name : ''}</h3>
         <div class="event__schedule">
           <p class="event__time">
-            <time class="event__start-time" datetime="${startDate}">${formatStartTime}</time>
+            <time class="event__start-time" datetime="${startDate !== null ? startDate : ''}">${formatStartTime}</time>
             &mdash;
-            <time class="event__end-time" datetime="${endDate}">${formatEndTime}</time>
+            <time class="event__end-time" datetime="${endDate !== null ? endDate : ''}">${formatEndTime}</time>
           </p>
           <p class="event__duration">${dateSubtract(endDate, startDate)}</p>
         </div>

@@ -58,7 +58,7 @@ function createPointEditComponent({typePoint, destinationId, startDate, endDate,
            <label class="event__label  event__type-output" for="event-destination-1">
             ${typePoint}
            </label>
-           <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${selectDestination.name}" list="destination-list-1">
+           <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${selectDestination !== undefined ? selectDestination.name : ''}" list="destination-list-1">
            <datalist id="destination-list-1">
             ${allDestinations.map((destination) => createTitleDestinationsTemplate(destination.name, destination.id)).join('')}
            </datalist>
@@ -77,7 +77,7 @@ function createPointEditComponent({typePoint, destinationId, startDate, endDate,
              <span class="visually-hidden">Price</span>
              &euro;
            </label>
-           <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${price}">
+           <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price" value="${price ? price : ''}">
          </div>
 
          <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
@@ -112,15 +112,17 @@ export default class EventEditView extends AbstractStatefulView {
   #destinations = null;
   #selectDestination = null;
   #handlerCloseFormClick = null;
+  #handelDeletePointSubmit = null;
 
   #datePicker = null;
 
-  constructor({point, checkedOffers, offers, destinations, onFormSubmit, onCloseEditClick }) {
+  constructor({point, checkedOffers, offers, destinations, onFormSubmit, onCloseEditClick, onDeletePointSubmit }) {
     super();
     this.#destinations = destinations;
     this._setState(EventEditView.parsePointToState(point, checkedOffers, offers, destinations));
     this.#handlerSaveFormClick = onFormSubmit;
     this.#handlerCloseFormClick = onCloseEditClick;
+    this.#handelDeletePointSubmit = onDeletePointSubmit;
 
 
     this._restoreHandlers();
@@ -131,30 +133,14 @@ export default class EventEditView extends AbstractStatefulView {
   }
 
   _restoreHandlers() {
-    this.element.querySelector('.event__save-btn').addEventListener('click', this.#onEditPointSubmit);
+    this.element.querySelector('.event').addEventListener('submit', this.#onSaveEditPointSubmit); // вопрос
+    this.element.querySelector('.event__reset-btn').addEventListener('click', this.#onDeletePointSubmit);
     this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#onClosePointClick);
     this.element.querySelector('.event__type-wrapper').addEventListener('click', this.#onSelectTypePointClick);
     this.element.querySelector('.event__input').addEventListener('change', this.#onSelectDestinationsClick);
+    this.element.querySelector('.event__input--price').addEventListener('input', this.#onSelectPriceKey);
     this.#setStartDatePicker();
     this.#setEndDatePicker();
-  }
-
-  static parsePointToState(point, checkedOffers, offers, destinations) {
-    return {...point,
-      checkedOffers: checkedOffers,
-      offersByType: offers,
-      allDestinations: destinations,
-    };
-  }
-
-  static parseStateToPoint(state) {
-    const point = {...state};
-
-    delete point.checkedOffers;
-    delete point.offersByType;
-    delete point.allDestinations;
-
-    return point;
   }
 
   reset({point, checkedOffers, offers, destinations}) {
@@ -183,7 +169,7 @@ export default class EventEditView extends AbstractStatefulView {
         dateFormat: 'y/m/d h:i',
         enableTime: true,
         maxDate: this._state.endDate,
-        defaultDate: this._state.startDate,
+        defaultDate: humanizeOrderData(this._state.startDate),
         onChange: this.#onStartDateChange,
       },
     );
@@ -229,13 +215,39 @@ export default class EventEditView extends AbstractStatefulView {
     });
   };
 
-  #onEditPointSubmit = (evt) => {
-    evt.preventDefault();
-    this.#handlerSaveFormClick();
+  #onSelectPriceKey = (evt) => {
+    this._state.price = evt.target.value;
   };
 
-  #onClosePointClick = (evt) => {
+  #onSaveEditPointSubmit = (evt) => {
     evt.preventDefault();
+    this.#handlerSaveFormClick(EventEditView.parseStateToPoint(this._state));
+  };
+
+  #onDeletePointSubmit = (evt) => {
+    evt.preventDefault();
+    this.#handelDeletePointSubmit(EventEditView.parseStateToPoint(this._state));
+  };
+
+  #onClosePointClick = () => {
     this.#handlerCloseFormClick();
   };
+
+  static parsePointToState(point, checkedOffers, offers, destinations) {
+    return {...point,
+      checkedOffers: checkedOffers,
+      offersByType: offers,
+      allDestinations: destinations,
+    };
+  }
+
+  static parseStateToPoint(state) {
+    const point = {...state};
+
+    delete point.checkedOffers;
+    delete point.offersByType;
+    delete point.allDestinations;
+
+    return point;
+  }
 }

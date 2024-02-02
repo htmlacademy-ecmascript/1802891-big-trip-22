@@ -2,7 +2,7 @@ import AbstractView from '../framework/view/abstract-view';
 
 function addPointButtonTemplate() {
   return `
-  <button class="trip-main__event-add-btn  btn  btn--big  btn--yellow" type="button">
+  <button class="trip-main__event-add-btn  btn  btn--big  btn--yellow" type="button"}>
     New event
   </button>
   `;
@@ -10,6 +10,7 @@ function addPointButtonTemplate() {
 
 export default class ButtonAddPointView extends AbstractView{
   #handlerOpenPointClick = null;
+  #modeAddPoint = null;
 
   constructor(onButtonClick) {
     super();

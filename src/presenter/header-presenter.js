@@ -5,9 +5,8 @@ import InfoPriceView from '../view/info-price-header.js';
 import InfoContainerView from '../view/info-container.js';
 import InfoWrapperContentView from '../view/info-wrapper-content.js';
 import ButtonAddPointView from '../view/button-add-point.js';
-
-
-import {render, RenderPosition} from '../framework/render.js';
+import { FilterType, UpdateType } from '../const.js';
+import {render, replace, remove, RenderPosition} from '../framework/render.js';
 
 export default class HeaderPresenter {
   #tripContainer = new InfoContainerView();
@@ -15,14 +14,24 @@ export default class HeaderPresenter {
 
 
   #handlerOpenPointClick = null;
-  #handlerClosePointClick = null;
+  #filtersModel = null;
+  #pointModel = null;
 
   #headerContainer = null;
   #containerFilters = null;
+  #filterComponent = null;
 
-  constructor(onOpenPointClick, onClosePointClick) {
-    this.#handlerOpenPointClick = onOpenPointClick;
-    this.#handlerClosePointClick = onClosePointClick;
+  constructor({handlerOpenAddPoint, filtersModel, pointModel}) {
+    this.#handlerOpenPointClick = handlerOpenAddPoint;
+    this.#filtersModel = filtersModel;
+    this.#pointModel = pointModel;
+
+    this.#pointModel.addObserver(this.#handelModeEvent);
+    this.#filtersModel.addObserver(this.#handelModeEvent);
+  }
+
+  get filters() {
+    return Object.values(FilterType).map((type) => type);
   }
 
   init() {
@@ -34,7 +43,38 @@ export default class HeaderPresenter {
     render(this.#tripWrapperContent, this.#tripContainer.element, RenderPosition.AFTERBEGIN);
     render(new InfoTitleView(), this.#tripWrapperContent.element);
     render(new InfoDataView(), this.#tripWrapperContent.element);
-    render(new FilterView(), this.#containerFilters);
     render(new ButtonAddPointView(this.#handlerOpenPointClick), this.#headerContainer);
   }
+
+  initFilters() {
+    const filters = this.filters;
+    const prevFilterComponent = this.#filterComponent;
+
+    this.#filterComponent = new FilterView({
+      filters,
+      currentFilterType: this.#filtersModel.filter,
+      onFilterTypeChange: this.#handlerFilterTypeChange,
+    });
+
+    if (prevFilterComponent === null) {
+      render(this.#filterComponent, this.#containerFilters);
+      return;
+    }
+
+    // render(new FilterView(this.#filtersModel, this.#pointModel, this.#onFilterTypeChange), this.#containerFilters);
+    replace(this.#filterComponent, prevFilterComponent);
+    remove(prevFilterComponent);
+  }
+
+  #handelModeEvent = () => {
+    this.initFilters();
+  };
+
+  #handlerFilterTypeChange = (filterType) => {
+    if (this.#filtersModel.filter === filterType) {
+      return;
+    }
+
+    this.#filtersModel.setFilter(UpdateType.MAJOR, filterType);
+  };
 }

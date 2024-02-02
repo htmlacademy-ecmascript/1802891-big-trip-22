@@ -70,6 +70,26 @@ export const mockOffers = [
     ]
   },
   {
+    type: 'Flight',
+    offers: [
+      {
+        id:'31',
+        title: 'Add meal',
+        price: 12,
+      },
+      {
+        id:'32',
+        title: 'Add luggage',
+        price: 50,
+      },
+      {
+        id:'33',
+        title: 'Travel by train',
+        price: 5,
+      }
+    ]
+  },
+  {
     type: 'Sightseeing',
     offers: []
   },
