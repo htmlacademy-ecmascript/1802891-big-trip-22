@@ -2,6 +2,7 @@ import { humanizeOrderData } from '../utils/date.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { YEAR_MONTH_DAY } from '../const.js';
 import flatpickr from 'flatpickr';
+import he from 'he';
 
 import 'flatpickr/dist/flatpickr.min.css';
 
@@ -11,7 +12,7 @@ function listType(type) {
     <legend class="visually-hidden">Event type</legend>
       <div class="event__type-item">
         <input id="event-type-${type.toLowerCase()}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${type.toLowerCase()}">
-        <label class="event__type-label  event__type-label--${type.toLowerCase()}" for="event-type-${type.toLowerCase()}-1">${type}</label>
+        <label class="event__type-label  event__type-label--${type.toLowerCase()}" for="event-type-${type.toLowerCase()}-1">${he.encode(type)}</label>
       </div>
   </fieldset>`;
 }
@@ -20,9 +21,9 @@ function createTemplateOffer(offer, checkedOffers) {
   const checkedOffer = checkedOffers.map((allOffer) => allOffer.id === offer.id);
   return `
   <div class="event__offer-selector">
-    <input class="event__offer-checkbox  visually-hidden" id="event-offer-${offer.title}-${offer.id}" type="checkbox" name="event-offer-luggage" ${checkedOffer.map((isOffer) => isOffer === true ? 'checked ' : '').join('')}>
-    <label class="event__offer-label" for="event-offer-luggage-${offer.id}">
-      <span class="event__offer-title">${offer.title}</span>
+    <input class="event__offer-checkbox  visually-hidden" id="event-offer-${he.encode(offer.title)}-${he.encode(offer.id)}" type="checkbox" name="event-offer-luggage" ${checkedOffer.map((isOffer) => isOffer === true ? 'checked ' : '').join('')}>
+    <label class="event__offer-label" for="event-offer-luggage-${he.encode(offer.id)}">
+      <span class="event__offer-title">${he.encode(offer.title)}</span>
       &plus;&euro;&nbsp;
       <span class="event__offer-price">$${offer.price}</span>
     </label>
@@ -56,7 +57,7 @@ function createPointEditComponent({typePoint, destinationId, startDate, endDate,
 
          <div class="event__field-group  event__field-group--destination">
            <label class="event__label  event__type-output" for="event-destination-1">
-            ${typePoint}
+            ${he.encode(typePoint)}
            </label>
            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${selectDestination !== undefined ? selectDestination.name : ''}" list="destination-list-1">
            <datalist id="destination-list-1">
@@ -66,10 +67,10 @@ function createPointEditComponent({typePoint, destinationId, startDate, endDate,
 
          <div class="event__field-group  event__field-group--time">
            <label class="visually-hidden" for="event-start-time-1">From</label>
-           <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${startFormatDate}">
+           <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${he.encode(startFormatDate)}">
            &mdash;
            <label class="visually-hidden" for="event-end-time-1">To</label>
-           <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${endFormatDate}">
+           <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${he.encode(endFormatDate)}">
          </div>
 
          <div class="event__field-group  event__field-group--price">
@@ -98,7 +99,7 @@ function createPointEditComponent({typePoint, destinationId, startDate, endDate,
          ${destinationId !== null ? `
           <section class="event__section  event__section--destination">
             <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-            <p class="event__destination-description">${selectDestination.description}</p>
+            <p class="event__destination-description">${he.encode(selectDestination.description)}</p>
           </section>` : ''}
 
        </section>
@@ -138,7 +139,7 @@ export default class EventEditView extends AbstractStatefulView {
     this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#onClosePointClick);
     this.element.querySelector('.event__type-wrapper').addEventListener('click', this.#onSelectTypePointClick);
     this.element.querySelector('.event__input').addEventListener('change', this.#onSelectDestinationsClick);
-    this.element.querySelector('.event__input--price').addEventListener('input', this.#onSelectPriceKey);
+    this.element.querySelector('.event__input--price').addEventListener('input', this.#onInputPriceKey);
     this.#setStartDatePicker();
     this.#setEndDatePicker();
   }
@@ -182,7 +183,7 @@ export default class EventEditView extends AbstractStatefulView {
         dateFormat: 'y/m/d h:i',
         enableTime: true,
         minDate: this._state.startDate,
-        defaultDate: this._state.endDate,
+        defaultDate: humanizeOrderData(this._state.endDate),
         onChange: this.#onEndDateChange,
       },
     );
@@ -215,8 +216,8 @@ export default class EventEditView extends AbstractStatefulView {
     });
   };
 
-  #onSelectPriceKey = (evt) => {
-    this._state.price = evt.target.value;
+  #onInputPriceKey = (evt) => {
+    this._state.price = +evt.target.value;
   };
 
   #onSaveEditPointSubmit = (evt) => {

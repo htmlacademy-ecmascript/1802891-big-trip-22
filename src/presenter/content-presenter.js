@@ -8,6 +8,7 @@ import { remove, render } from '../framework/render.js';
 import HeaderPresenter from './header-presenter.js';
 import { RenderPosition } from '../framework/render.js';
 import { filter } from '../utils/filter.js';
+import LoadingView from '../view/loading-view.js';
 
 const ModeAddPoint = {
   OPEN: 'OPEN',
@@ -16,6 +17,7 @@ const ModeAddPoint = {
 
 export default class contentPresenter {
   #tripList = new TripEvensListView();
+  #loadingComponent = new LoadingView();
   #noPointComponent = null;
   #pointPresenter = null;
   #headerPresenter = null;
@@ -27,6 +29,7 @@ export default class contentPresenter {
   #modeAddPoint = ModeAddPoint.CLOSE;
   #currentTypeSort = SortType.DAY;
   #filterType = FilterType.EVERYTHING;
+  #isLoading = true;
 
   #pointPresenters = new Map();
 
@@ -55,8 +58,11 @@ export default class contentPresenter {
   }
 
   init() {
-    this.#renderHeader();
     this.#renderContents();
+    this.#pointModel.init()
+      .finally(() => {
+        this.#renderHeader();
+      });
   }
 
   #renderNoPoint() {
@@ -66,7 +72,16 @@ export default class contentPresenter {
     render(this.#noPointComponent, this.#contentContainer);
   }
 
+  #renderLoading() {
+    render(this.#loadingComponent, this.#contentContainer, RenderPosition.AFTERBEGIN);
+  }
+
   #renderContents() {
+    if (this.#isLoading) {
+      this.#renderLoading();
+      return;
+    }
+
     if (this.#pointModel.points.length === 0) {
       this.#renderNoPoint();
       return;
@@ -133,6 +148,11 @@ export default class contentPresenter {
         this.#clearContent();
         this.#renderContents({resetSortType: true});
         break;
+      case UpdateType.INIT:
+        this.#isLoading = false;
+        remove(this.#loadingComponent);
+        this.#renderContents();
+        break;
     }
   };
 
@@ -140,6 +160,7 @@ export default class contentPresenter {
     this.#pointPresenters.forEach((presenter) => presenter.destroy());
     this.#pointPresenters.clear();
 
+    remove(this.#loadingComponent);
     remove(this.#sortPointView);
     remove(this.#noPointComponent);
 
@@ -164,9 +185,6 @@ export default class contentPresenter {
 
   #handlerOpenAddPoint = () => {
     this.#handlerModeChange();
-    this.#modeAddPoint = ModeAddPoint.OPEN;
     this.#pointPresenter.renderPointAdd();
-    // remove(this.#headerPresenter);
-    // this.#renderHeader(this.#modeAddPoint);
   };
 }

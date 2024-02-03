@@ -25,5 +25,6 @@ export default class ButtonAddPointView extends AbstractView{
   #clickButton = (evt) => {
     evt.preventDefault();
     this.#handlerOpenPointClick();
+    evt.target.disabled = true;
   };
 }
