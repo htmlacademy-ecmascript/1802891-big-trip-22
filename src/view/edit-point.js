@@ -138,7 +138,7 @@ export default class EventEditView extends AbstractStatefulView {
   }
 
   _restoreHandlers() {
-    this.element.querySelector('.event').addEventListener('submit', this.#onSaveEditPointSubmit); // вопрос
+    this.element.querySelector('.event').addEventListener('submit', this.#onSaveEditPointSubmit);
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#onDeletePointSubmit);
     this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#onClosePointClick);
     this.element.querySelector('.event__type-wrapper').addEventListener('click', this.#onSelectTypePointClick);
@@ -223,7 +223,6 @@ export default class EventEditView extends AbstractStatefulView {
 
   #onSelectOfferClick = (evt) => {
     const indexSelectOffer = this._state.offers.findIndex((offer) => offer === evt.target.dataset.id);
-    //let offers = this._state.offers;
     if (indexSelectOffer === -1) {
       this._state.offers.push(evt.target.dataset.id);
     }
@@ -231,7 +230,6 @@ export default class EventEditView extends AbstractStatefulView {
     if (indexSelectOffer === 1) {
       this._state.offers = [...this._state.offers.slice(0,indexSelectOffer),...this._state.offers.slice(indexSelectOffer + 1)];
     }
-    console.log(this._state.offers);
   };
 
   #onInputPriceKey = (evt) => {

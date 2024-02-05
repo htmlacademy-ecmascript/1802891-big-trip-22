@@ -1,8 +1,9 @@
 import TripEvensListView from '../view/trip-list.js';
 import SortPointView from '../view/sort-point.js';
+import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
 import NoPointView from '../view/list-point-empty.js';
 import PointPresenter from './point-presenter.js';
-import { sortPointByTime, sortPointByPrice } from '../utils/point.js';
+import { sortPointByTime, sortPointByPrice, sortPointsByDay } from '../utils/point.js';
 import { SortType, UpdateType, UserAction, FilterType } from '../const.js';
 import { remove, render } from '../framework/render.js';
 import HeaderPresenter from './header-presenter.js';
@@ -10,6 +11,10 @@ import { RenderPosition } from '../framework/render.js';
 import { filter } from '../utils/filter.js';
 import LoadingView from '../view/loading-view.js';
 
+const TimeLimit = {
+  LOWER_LIMIT: 350,
+  UPPER_LIMIT: 1000,
+};
 export default class contentPresenter {
   #tripList = new TripEvensListView();
   #loadingComponent = new LoadingView();
@@ -24,6 +29,10 @@ export default class contentPresenter {
   #currentTypeSort = SortType.DAY;
   #filterType = FilterType.EVERYTHING;
   #isLoading = true;
+  #uiBlocker = new UiBlocker({
+    lowerLimit: TimeLimit.LOWER_LIMIT,
+    upperLimit: TimeLimit.UPPER_LIMIT
+  });
 
   #pointPresenters = new Map();
 
@@ -46,6 +55,8 @@ export default class contentPresenter {
         return filteredPoints.sort(sortPointByTime);
       case SortType.PRICE:
         return filteredPoints.sort(sortPointByPrice);
+      case SortType.DAY:
+        return filteredPoints.sort(sortPointsByDay);
     }
 
     return this.#pointModel.points;
@@ -81,9 +92,9 @@ export default class contentPresenter {
       return;
     }
 
-    this.#renderSortPoints();
+    this.#renderSortPointsComponent();
     render(this.#tripList, this.#contentContainer);
-    this.#renderPoints(this.#pointModel.points);
+    this.#renderPoints(this.points);
   }
 
   #renderHeader() {
@@ -106,7 +117,7 @@ export default class contentPresenter {
     }
   }
 
-  #renderSortPoints() {
+  #renderSortPointsComponent() {
     this.#sortPointView = new SortPointView(
       this.#handlerSortTypePoints,
       this.#currentTypeSort,
@@ -116,6 +127,8 @@ export default class contentPresenter {
   }
 
   #handleViewAction = async (actionType, updateType, update) => {
+    this.#uiBlocker.block();
+
     switch (actionType) {
       case UserAction.UPDATE_POINT:
         this.#pointPresenter.setSavingEditPoint();
@@ -142,6 +155,8 @@ export default class contentPresenter {
         }
         break;
     }
+
+    this.#uiBlocker.unblock();
   };
 
   #handleModelEvent = (updateType, data) => {
@@ -190,7 +205,7 @@ export default class contentPresenter {
     this.#clearContent();
     this.#currentTypeSort = sortType;
     this.#renderPoints(this.points);
-    this.#renderSortPoints();
+    this.#renderSortPointsComponent();
   };
 
   #handlerOpenAddPoint = () => {

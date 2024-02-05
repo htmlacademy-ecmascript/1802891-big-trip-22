@@ -5,7 +5,7 @@ function createTripSortContent(currentTypeSort) {
   return `
   <form class="trip-events__trip-sort  trip-sort" action="#" method="get">
     <div class="trip-sort__item  trip-sort__item--day">
-      <input id="sort-day" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="sort-${SortType.DAY}" ${currentTypeSort === SortType.DAY ? 'checked' : ''}>
+      <input id="sort-day" class="trip-sort__input  visually-hidden" data-sort-type="${SortType.DAY}" type="radio" name="trip-sort" value="sort-${SortType.DAY}" ${currentTypeSort === SortType.DAY ? 'checked' : ''}>
       <label class="trip-sort__btn" for="sort-day" data-sort-type="${SortType.DAY}">Day</label>
     </div>
 
@@ -15,12 +15,12 @@ function createTripSortContent(currentTypeSort) {
     </div>
 
     <div class="trip-sort__item  trip-sort__item--time">
-      <input id="sort-time" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="sort-${SortType.TIME}" ${currentTypeSort === SortType.TIME ? 'checked' : ''}>
+      <input id="sort-time" class="trip-sort__input  visually-hidden" data-sort-type="${SortType.TIME}" type="radio" name="trip-sort" value="sort-${SortType.TIME}" ${currentTypeSort === SortType.TIME ? 'checked' : ''}>
       <label class="trip-sort__btn" for="sort-time" data-sort-type="${SortType.TIME}">Time</label>
     </div>
 
     <div class="trip-sort__item  trip-sort__item--price">
-      <input id="sort-price" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="sort-${SortType.PRICE}" ${currentTypeSort === SortType.PRICE ? 'checked' : ''}>
+      <input id="sort-price" class="trip-sort__input  visually-hidden" data-sort-type="${SortType.PRICE}" type="radio" name="trip-sort" value="sort-${SortType.PRICE}" ${currentTypeSort === SortType.PRICE ? 'checked' : ''}>
       <label class="trip-sort__btn" for="sort-price" data-sort-type="${SortType.PRICE}">Price</label>
     </div>
 
@@ -40,17 +40,18 @@ export default class TripSortPointsView extends AbstractView{
     this.#handlerSortByTypePoints = onSortTypePointsChange;
     this.#currentTypeSort = currentTypeSort;
 
-    this.element.addEventListener('click', this.#sortTypePoints);
+    this.element.addEventListener('change', this.#sortTypePoints);
   }
 
   get template() {
     return createTripSortContent(this.#currentTypeSort);
   }
+  // evt.target.tagName !== 'LABEL'
 
   #sortTypePoints = (evt) => {
-    if (evt.target.tagName !== 'LABEL') {
-      return;
+    if (evt.target.closest('.trip-sort__item ')) {
+      this.#handlerSortByTypePoints(evt.target.dataset.sortType);
     }
-    this.#handlerSortByTypePoints(evt.target.dataset.sortType);
+
   };
 }
