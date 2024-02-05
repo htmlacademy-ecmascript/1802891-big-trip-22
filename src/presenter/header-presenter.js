@@ -61,7 +61,6 @@ export default class HeaderPresenter {
       return;
     }
 
-    // render(new FilterView(this.#filtersModel, this.#pointModel, this.#onFilterTypeChange), this.#containerFilters);
     replace(this.#filterComponent, prevFilterComponent);
     remove(prevFilterComponent);
   }
