@@ -3,9 +3,9 @@ import PointModel from './model/points-model.js';
 import FilterModel from './model/filter-model.js';
 import PointApiService from './point-api-service.js';
 
-const tripContent = document.querySelector('.trip-events');
 const AUTHORIZATION = 'Basic er034jdzbdw';
 const END_POINT = 'https://22.objects.htmlacademy.pro/big-trip';
+const tripContent = document.querySelector('.trip-events');
 
 const pointModel = new PointModel({
   pointApiService: new PointApiService(END_POINT, AUTHORIZATION),

@@ -17,4 +17,8 @@ function sortPointByPrice(pointA, pointB) {
   return pointB.price - pointA.price;
 }
 
-export { sortPointByTime, sortPointByPrice};
+function sortPointsByDay (pointA, pointB) {
+  return dayjs(pointA.startDate) - dayjs(pointB.startDate);
+}
+
+export { sortPointByTime, sortPointByPrice, sortPointsByDay};
