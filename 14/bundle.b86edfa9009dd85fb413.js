@@ -548,22 +548,33 @@ class PointModel extends _framework_observable_js__WEBPACK_IMPORTED_MODULE_1__["
       const response = await this.#pointApiService.updatePoint(update);
       const updatePoint = this.#adaptToClient(response);
       this.#points = [...this.#points.slice(0, index), updatePoint, ...this.#points.slice(index + 1)];
+      this._notify(updateType, update);
     } catch (err) {
       throw new Error('Can\'t update point');
     }
-    this._notify(updateType, update);
   }
-  addPoints(updateType, update) {
-    this.#points = [update, ...this.#points];
-    this._notify(updateType, update);
+  async addPoints(updateType, update) {
+    try {
+      const response = await this.#pointApiService.addPoint(update);
+      const newPoint = this.#adaptToClient(response);
+      this.#points = [newPoint, ...this.#points];
+      this._notify(updateType, newPoint);
+    } catch (err) {
+      throw new Error('Can\'t add task');
+    }
   }
-  deletePoints(updateType, update) {
+  async deletePoints(updateType, update) {
     const index = this.#points.findIndex(point => point.id === update.id);
     if (index === -1) {
       throw new Error('Can\'t update unexisting task');
     }
-    this.#points = [...this.#points.slice(0, index), ...this.#points.slice(index + 1)];
-    this._notify(updateType, update);
+    try {
+      await this.#pointApiService.deletePoint(update);
+      this.#points = [...this.#points.slice(0, index), ...this.#points.slice(index + 1)];
+      this._notify(updateType, update);
+    } catch (err) {
+      throw new Error('Can\'t delete task');
+    }
   }
 }
 
@@ -584,7 +595,9 @@ __webpack_require__.r(__webpack_exports__);
 
 const Method = {
   GET: 'get',
-  PUT: 'put'
+  PUT: 'put',
+  POST: 'post',
+  DELETE: 'delete'
 };
 class PointApiService extends _framework_api_service__WEBPACK_IMPORTED_MODULE_0__["default"] {
   get points() {
@@ -613,6 +626,25 @@ class PointApiService extends _framework_api_service__WEBPACK_IMPORTED_MODULE_0_
     });
     const parsedResponse = await _framework_api_service__WEBPACK_IMPORTED_MODULE_0__["default"].parseResponse(response);
     return parsedResponse;
+  }
+  async addPoint(point) {
+    const response = await this._load({
+      url: 'points',
+      method: Method.POST,
+      body: JSON.stringify(this.#adaptToClient(point)),
+      headers: new Headers({
+        'Content-Type': 'application/json'
+      })
+    });
+    const parsedResponse = await _framework_api_service__WEBPACK_IMPORTED_MODULE_0__["default"].parseResponse(response);
+    return parsedResponse;
+  }
+  async deletePoint(point) {
+    const response = await this._load({
+      url: `points/${point.id}`,
+      method: Method.DELETE
+    });
+    return response;
   }
   #adaptToClient(point) {
     const adaptedToClient = {
@@ -668,10 +700,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const ModeAddPoint = {
-  OPEN: 'OPEN',
-  CLOSE: 'CLOSE'
-};
 class contentPresenter {
   #tripList = new _view_trip_list_js__WEBPACK_IMPORTED_MODULE_0__["default"]();
   #loadingComponent = new _view_loading_view_js__WEBPACK_IMPORTED_MODULE_9__["default"]();
@@ -682,7 +710,6 @@ class contentPresenter {
   #contentContainer = null;
   #pointModel = null;
   #filterModel = null;
-  #modeAddPoint = ModeAddPoint.CLOSE;
   #currentTypeSort = _const_js__WEBPACK_IMPORTED_MODULE_5__.SortType.DAY;
   #filterType = _const_js__WEBPACK_IMPORTED_MODULE_5__.FilterType.EVERYTHING;
   #isLoading = true;
@@ -711,10 +738,10 @@ class contentPresenter {
     return this.#pointModel.points;
   }
   init() {
-    this.#renderContents();
     this.#pointModel.init().finally(() => {
       this.#renderHeader();
     });
+    this.#renderContents();
   }
   #renderNoPoint() {
     this.#noPointComponent = new _view_list_point_empty_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
@@ -749,7 +776,7 @@ class contentPresenter {
   }
   #renderPoints(points) {
     for (const dataPoint of points) {
-      this.#pointPresenter = new _point_presenter_js__WEBPACK_IMPORTED_MODULE_3__["default"](this.#tripList.element, this.#pointModel, this.#handleViewAction, this.#handlerModeChange, this.#modeAddPoint);
+      this.#pointPresenter = new _point_presenter_js__WEBPACK_IMPORTED_MODULE_3__["default"](this.#tripList.element, this.#pointModel, this.#handleViewAction, this.#handlerModeChange);
       this.#pointPresenter.init(dataPoint);
       this.#pointPresenters.set(dataPoint.id, this.#pointPresenter);
     }
@@ -758,16 +785,31 @@ class contentPresenter {
     this.#sortPointView = new _view_sort_point_js__WEBPACK_IMPORTED_MODULE_1__["default"](this.#handlerSortTypePoints, this.#currentTypeSort);
     (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_6__.render)(this.#sortPointView, this.#contentContainer, _framework_render_js__WEBPACK_IMPORTED_MODULE_6__.RenderPosition.AFTERBEGIN);
   }
-  #handleViewAction = (actionType, updateType, update) => {
+  #handleViewAction = async (actionType, updateType, update) => {
     switch (actionType) {
       case _const_js__WEBPACK_IMPORTED_MODULE_5__.UserAction.UPDATE_POINT:
-        this.#pointModel.updatePoint(updateType, update);
+        this.#pointPresenter.setSavingEditPoint();
+        try {
+          await this.#pointModel.updatePoint(updateType, update);
+        } catch (err) {
+          this.#pointPresenters.get(update.id).setAborting();
+        }
         break;
       case _const_js__WEBPACK_IMPORTED_MODULE_5__.UserAction.ADD_POINT:
-        this.#pointModel.addPoints(updateType, update);
+        this.#pointPresenter.setSavingNewPoint();
+        try {
+          this.#pointModel.addPoints(updateType, update);
+        } catch (err) {
+          this.#pointPresenter.setAborting();
+        }
         break;
       case _const_js__WEBPACK_IMPORTED_MODULE_5__.UserAction.DELETE_POINT:
-        this.#pointModel.deletePoints(updateType, update);
+        this.#pointPresenter.setDeleting();
+        try {
+          this.#pointModel.deletePoints(updateType, update);
+        } catch (err) {
+          this.#pointPresenters.get(update.id).setAborting();
+        }
         break;
     }
   };
@@ -775,6 +817,7 @@ class contentPresenter {
     switch (updateType) {
       case _const_js__WEBPACK_IMPORTED_MODULE_5__.UpdateType.PATCH:
         this.#pointPresenters.get(data.id).init(data);
+        this.#pointPresenters.get(data.id).resetView(true);
         break;
       case _const_js__WEBPACK_IMPORTED_MODULE_5__.UpdateType.MINOR:
         this.#clearContent();
@@ -932,8 +975,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _const_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../const.js */ "./src/const.js");
 /* harmony import */ var _utils_date_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils/date.js */ "./src/utils/date.js");
 /* harmony import */ var _framework_render_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../framework/render.js */ "./src/framework/render.js");
-/* harmony import */ var nanoid__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! nanoid */ "./node_modules/nanoid/index.browser.js");
-
 
 
 
@@ -943,10 +984,6 @@ __webpack_require__.r(__webpack_exports__);
 const Mode = {
   DEFAULT: 'DEFAULT',
   EDITING: 'EDITING'
-};
-const ModeAddPoint = {
-  OPEN: 'OPEN',
-  CLOSE: 'CLOSE'
 };
 class RenderPoint {
   #containerPoint = null;
@@ -958,13 +995,11 @@ class RenderPoint {
   #handlerChangeData = null;
   #pointData = null;
   #mode = Mode.DEFAULT;
-  #modeAddPoint = ModeAddPoint.CLOSE;
-  constructor(containerListPoint, pointModel, onDateChange, onModeChange, modeAddPoint) {
+  constructor(containerListPoint, pointModel, onDateChange, onModeChange) {
     this.#containerPoint = containerListPoint;
     this.#pointModel = pointModel;
     this.#handlerChangeData = onDateChange;
     this.#handlerModeChange = onModeChange;
-    this.#modeAddPoint = modeAddPoint;
   }
   init(point) {
     this.#pointData = point;
@@ -998,14 +1033,17 @@ class RenderPoint {
     }
     if (this.#mode === Mode.EDITING) {
       (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_5__.replace)(this.#pointEditView, prevPointEditView);
+      this.#mode = Mode.DEFAULT;
     }
     (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_5__.remove)(prevPointView);
     (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_5__.remove)(prevPointEditView);
     (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_5__.render)(this.#pointView, this.#containerPoint);
   }
-  resetView() {
+  resetView(modePatch) {
     if (this.#addPointView !== null) {
       this.#onClosePointAddClick();
+      const newPointButton = document.querySelector('.trip-main__event-add-btn');
+      newPointButton.disabled = false;
     }
     if (this.#mode !== Mode.DEFAULT) {
       this.#pointEditView.reset({
@@ -1014,6 +1052,9 @@ class RenderPoint {
         offers: [...this.#pointModel.offers],
         destinations: this.#pointModel.destinations
       });
+      this.#handlerSwapPointToEditClick();
+    }
+    if (modePatch) {
       this.#handlerSwapPointToEditClick();
     }
   }
@@ -1046,7 +1087,6 @@ class RenderPoint {
   #handlerFormEditSubmit = update => {
     const coincidenceTime = (0,_utils_date_js__WEBPACK_IMPORTED_MODULE_4__.isDatesEqual)(this.#pointData.startDate, update.startDate) && (0,_utils_date_js__WEBPACK_IMPORTED_MODULE_4__.isDatesEqual)(this.#pointData.endDate, update.endDate);
     const coincidencePrice = this.#pointData.price === update.price;
-    this.#handlerSwapPointToEditClick();
     document.addEventListener('keydown', this.#escKeyDownHandler);
     this.#handlerChangeData(_const_js__WEBPACK_IMPORTED_MODULE_3__.UserAction.UPDATE_POINT, coincidenceTime && coincidencePrice ? _const_js__WEBPACK_IMPORTED_MODULE_3__.UpdateType.PATCH : _const_js__WEBPACK_IMPORTED_MODULE_3__.UpdateType.MINOR, update);
   };
@@ -1078,8 +1118,43 @@ class RenderPoint {
       (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_5__.render)(this.#addPointView, this.#containerPoint, _framework_render_js__WEBPACK_IMPORTED_MODULE_5__.RenderPosition.AFTERBEGIN);
     }
   };
+  setAborting() {
+    if (this.#mode === Mode.DEFAULT) {
+      this.#pointView.shake();
+      return;
+    }
+    const resetFormState = () => {
+      this.#pointEditView.updateElement({
+        isDisabled: false,
+        isSaving: false,
+        isDeleting: false
+      });
+    };
+    this.#pointEditView.shake(resetFormState);
+  }
+  setSavingEditPoint() {
+    if (this.#mode === Mode.EDITING) {
+      this.#pointEditView.updateElement({
+        isDisabled: true,
+        isSaving: true
+      });
+    }
+  }
+  setSavingNewPoint() {
+    this.#addPointView.updateElement({
+      isDisabled: true,
+      isSaving: true
+    });
+  }
+  setDeleting() {
+    if (this.#mode === Mode.EDITING) {
+      this.#pointEditView.updateElement({
+        isDisabled: true,
+        isDeleting: true
+      });
+    }
+  }
   #onClosePointAddClick = () => {
-    this.#modeAddPoint = ModeAddPoint.CLOSE;
     (0,_framework_render_js__WEBPACK_IMPORTED_MODULE_5__.remove)(this.#addPointView);
     this.#addPointView.reset({
       offers: [...this.#pointModel.offers],
@@ -1088,10 +1163,7 @@ class RenderPoint {
     this.#addPointView = null;
   };
   #onSaveNewPointSubmit = point => {
-    this.#handlerChangeData(_const_js__WEBPACK_IMPORTED_MODULE_3__.UserAction.ADD_POINT, _const_js__WEBPACK_IMPORTED_MODULE_3__.UpdateType.MINOR, {
-      id: (0,nanoid__WEBPACK_IMPORTED_MODULE_6__.nanoid)(),
-      ...point
-    });
+    this.#handlerChangeData(_const_js__WEBPACK_IMPORTED_MODULE_3__.UserAction.ADD_POINT, _const_js__WEBPACK_IMPORTED_MODULE_3__.UpdateType.MINOR, point);
   };
 }
 
@@ -1222,20 +1294,20 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-function listType(type) {
+function listType(type, isDisabled) {
   return `
   <fieldset class="event__type-group">
     <legend class="visually-hidden">Event type</legend>
       <div class="event__type-item">
-        <input id="event-type-${type.toLowerCase()}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${type.toLowerCase()}">
+        <input id="event-type-${type.toLowerCase()}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${type.toLowerCase()}" ${isDisabled ? 'disabled' : ''}>
         <label class="event__type-label  event__type-label--${type.toLowerCase()}" for="event-type-${type.toLowerCase()}-1">${type}</label>
       </div>
   </fieldset>`;
 }
-function createTemplateOffer(offer) {
+function createTemplateOffer(offer, isDisabled) {
   return `
   <div class="event__offer-selector">
-    <input class="event__offer-checkbox  visually-hidden" id="event-offer-luggage-${he__WEBPACK_IMPORTED_MODULE_2___default().encode(offer.id)}" type="checkbox" name="event-offer-luggage">
+    <input class="event__offer-checkbox  visually-hidden" id="event-offer-luggage-${he__WEBPACK_IMPORTED_MODULE_2___default().encode(offer.id)}" type="checkbox" name="event-offer-luggage" ${isDisabled ? 'disabled' : ''}>
     <label class="event__offer-label" for="event-offer-luggage-${offer.id}">
       <span class="event__offer-title">${he__WEBPACK_IMPORTED_MODULE_2___default().encode(offer.title)}</span>
       &plus;&euro;&nbsp;
@@ -1256,10 +1328,12 @@ function createListEvents({
   endDate,
   price,
   offersByType,
-  allDestinations
+  allDestinations,
+  isDisabled,
+  isSaving
 }) {
   const selectDestination = allDestinations.find(selectedDestination => selectedDestination.id === destinationId);
-  const selectType = offersByType.find(offer => offer.type === typePoint ? offer : '');
+  const selectType = offersByType.find(offer => offer.type === typePoint.toLowerCase() ? offer : '');
   return `
     <li class="trip-events__item">
       <form class="event event--edit" action="#" method="post">
@@ -1269,10 +1343,10 @@ function createListEvents({
               <span class="visually-hidden">Choose event type</span>
               <img class="event__type-icon" width="17" height="17" src="img/icons/${typePoint.toLowerCase()}.png" alt="Event type icon">
             </label>
-            <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox">
+            <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox" ${isDisabled ? 'disabled' : ''}>
 
             <div class="event__type-list">
-              ${offersByType.map(offerType => listType(offerType.type)).join('')}
+              ${offersByType.map(offerType => listType(offerType.type, isDisabled)).join('')}
             </div>
           </div>
 
@@ -1280,7 +1354,7 @@ function createListEvents({
             <label class="event__label  event__type-output" for="event-destination-1">
               ${he__WEBPACK_IMPORTED_MODULE_2___default().encode(typePoint)}
             </label>
-            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destinationId !== null ? selectDestination.name : ''}" list="destination-list-1">
+            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destinationId !== null ? selectDestination.name : ''}" list="destination-list-1" ${isDisabled ? 'disabled' : ''}>
             <datalist id="destination-list-1">
               ${allDestinations.map(selectedDestination => createTitleDestinationsTemplate(selectedDestination.name, selectedDestination.id)).join('')}
             </datalist>
@@ -1288,10 +1362,10 @@ function createListEvents({
 
           <div class="event__field-group  event__field-group--time">
             <label class="visually-hidden" for="event-start-time-1">From</label>
-            <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${startDate !== null ? startDate : ''}">
+            <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${startDate !== null ? startDate : ''}" ${isDisabled ? 'disabled' : ''}>
             &mdash;
             <label class="visually-hidden" for="event-end-time-1">To</label>
-            <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${endDate !== null ? endDate : ''}">
+            <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${endDate !== null ? endDate : ''}" ${isDisabled ? 'disabled' : ''}>
           </div>
 
           <div class="event__field-group  event__field-group--price">
@@ -1299,11 +1373,13 @@ function createListEvents({
               <span class="visually-hidden">Price</span>
               &euro;
             </label>
-            <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price" value="${price}">
+            <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price" value="${price}" ${isDisabled ? 'disabled' : ''}>
           </div>
 
-          <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-          <button class="event__reset-btn" type="reset">Cancel</button>
+          <button class="event__save-btn  btn  btn--blue" type="submit" ${isSaving ? 'disabled' : ''}>
+            ${isSaving ? 'Saving' : 'Save'}
+          </button>
+          <button class="event__reset-btn" type="reset" ${isDisabled ? 'disabled' : ''}>Cancel</button>
         </header>
 
         <section class="event__details">
@@ -1312,7 +1388,7 @@ function createListEvents({
               <h3 class="event__section-title  event__section-title--offers">Offers</h3>
 
               <div class="event__available-offers">
-                ${selectType.offers.map(offer => createTemplateOffer(offer)).join('')}
+                ${selectType.offers.map(offer => createTemplateOffer(offer, isDisabled)).join('')}
               </div>` : ''}
           </section>
           ${destinationId !== null ? `
@@ -1359,6 +1435,7 @@ class TripEventsListView extends _framework_view_abstract_stateful_view_js__WEBP
     this.element.querySelector('.event__type-wrapper').addEventListener('click', this.#onSelectTypePointClick);
     this.element.querySelector('.event__input').addEventListener('change', this.#onSelectDestinationsClick);
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#onClosePointClick);
+    this.element.querySelector('.event__input--price').addEventListener('input', this.#onInputPriceKey);
     this.#setStartDatePicker();
     this.#setEndDatePicker();
   }
@@ -1384,10 +1461,12 @@ class TripEventsListView extends _framework_view_abstract_stateful_view_js__WEBP
       destinationId: this.#selectDestination ? this.#selectDestination.id : null
     });
   };
+  #onInputPriceKey = evt => {
+    this._state.price = +evt.target.value;
+  };
   #onEditPointSubmit = evt => {
     evt.preventDefault();
     this.#handlerSaveNewPointClick(TripEventsListView.parseStateToPoint(this._state));
-    this.#handlerClosePointClick();
     this.#newPointButton.disabled = false;
   };
   #onClosePointClick = evt => {
@@ -1425,15 +1504,17 @@ class TripEventsListView extends _framework_view_abstract_stateful_view_js__WEBP
   };
   static parsePointToState(offers, destinations) {
     return {
-      typePoint: 'Flight',
-      title: null,
+      typePoint: 'flight',
       startDate: null,
       endDate: null,
-      price: 0,
+      price: null,
       destinationId: null,
+      isFavourite: false,
       offers: [],
       offersByType: offers,
-      allDestinations: destinations
+      allDestinations: destinations,
+      isDisabled: false,
+      isSaving: false
     };
   }
   static parseStateToPoint(state) {
@@ -1443,6 +1524,8 @@ class TripEventsListView extends _framework_view_abstract_stateful_view_js__WEBP
     delete point.checkedOffers;
     delete point.offersByType;
     delete point.allDestinations;
+    delete point.isDisabled;
+    delete point.isSaving;
     return point;
   }
 }
@@ -1513,25 +1596,25 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-function listType(type) {
+function listType(type, isDisabled) {
   return `
   <fieldset class="event__type-group">
     <legend class="visually-hidden">Event type</legend>
       <div class="event__type-item">
-        <input id="event-type-${type.toLowerCase()}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${type.toLowerCase()}">
+        <input id="event-type-${type.toLowerCase()}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${type.toLowerCase()}" ${isDisabled ? 'disabled' : ''}>
         <label class="event__type-label  event__type-label--${type.toLowerCase()}" for="event-type-${type.toLowerCase()}-1">${he__WEBPACK_IMPORTED_MODULE_4___default().encode(type)}</label>
       </div>
   </fieldset>`;
 }
-function createTemplateOffer(offer, checkedOffers) {
+function createTemplateOffer(offer, checkedOffers, isDisabled) {
   const checkedOffer = checkedOffers.map(allOffer => allOffer.id === offer.id);
   return `
   <div class="event__offer-selector">
-    <input class="event__offer-checkbox  visually-hidden" id="event-offer-${he__WEBPACK_IMPORTED_MODULE_4___default().encode(offer.title)}-${he__WEBPACK_IMPORTED_MODULE_4___default().encode(offer.id)}" type="checkbox" name="event-offer-luggage" ${checkedOffer.map(isOffer => isOffer === true ? 'checked ' : '').join('')}>
-    <label class="event__offer-label" for="event-offer-luggage-${he__WEBPACK_IMPORTED_MODULE_4___default().encode(offer.id)}">
-      <span class="event__offer-title">${he__WEBPACK_IMPORTED_MODULE_4___default().encode(offer.title)}</span>
+    <input class="event__offer-checkbox visually-hidden" data-id="${he__WEBPACK_IMPORTED_MODULE_4___default().encode(offer.id)}" id="event-offer-${he__WEBPACK_IMPORTED_MODULE_4___default().encode(offer.id)}" type="checkbox" name="event-offer-luggage" ${checkedOffer.map(isOffer => isOffer === true ? 'checked ' : '').join('')} ${isDisabled ? 'disabled' : ''}>
+    <label class="event__offer-label" data-id="${he__WEBPACK_IMPORTED_MODULE_4___default().encode(offer.id)}" for="event-offer-${he__WEBPACK_IMPORTED_MODULE_4___default().encode(offer.id)}">
+      <span class="event__offer-title" data-id="${he__WEBPACK_IMPORTED_MODULE_4___default().encode(offer.id)}">${he__WEBPACK_IMPORTED_MODULE_4___default().encode(offer.title)}</span>
       &plus;&euro;&nbsp;
-      <span class="event__offer-price">$${offer.price}</span>
+      <span class="event__offer-price" data-id="${he__WEBPACK_IMPORTED_MODULE_4___default().encode(offer.id)}">$${offer.price}</span>
     </label>
   </div>`;
 }
@@ -1546,7 +1629,10 @@ function createPointEditComponent({
   price,
   checkedOffers,
   offersByType,
-  allDestinations
+  allDestinations,
+  isDeleting,
+  isDisabled,
+  isSaving
 }) {
   const startFormatDate = (0,_utils_date_js__WEBPACK_IMPORTED_MODULE_0__.humanizeOrderData)(startDate, _const_js__WEBPACK_IMPORTED_MODULE_2__.YEAR_MONTH_DAY);
   const selectDestination = allDestinations.find(destination => destination.id === destinationId);
@@ -1554,69 +1640,73 @@ function createPointEditComponent({
   const endFormatDate = (0,_utils_date_js__WEBPACK_IMPORTED_MODULE_0__.humanizeOrderData)(endDate, _const_js__WEBPACK_IMPORTED_MODULE_2__.YEAR_MONTH_DAY);
   return `
     <li class="trip-events__item">
-     <form class="event event--edit" action="#" method="post">
-       <header class="event__header">
-         <div class="event__type-wrapper">
-           <label class="event__type  event__type-btn" for="event-type-toggle-1">
-             <span class="visually-hidden">Choose event type</span>
-             <img class="event__type-icon" width="17" height="17" src="img/icons/${typePoint.toLowerCase()}.png" alt="Event type icon">
-           </label>
-           <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox">
+      <form class="event event--edit" action="#" method="post">
+        <header class="event__header">
+          <div class="event__type-wrapper">
+            <label class="event__type  event__type-btn" for="event-type-toggle-1">
+              <span class="visually-hidden">Choose event type</span>
+              <img class="event__type-icon" width="17" height="17" src="img/icons/${typePoint.toLowerCase()}.png" alt="Event type icon">
+            </label>
+            <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox" ${isDisabled ? 'disabled' : ''}>
 
-           <div class="event__type-list">
-            ${offersByType.map(offerType => listType(offerType.type)).join('')}
-           </div>
-         </div>
+            <div class="event__type-list">
+              ${offersByType.map(offerType => listType(offerType.type, isDisabled)).join('')}
+            </div>
+          </div>
 
-         <div class="event__field-group  event__field-group--destination">
-           <label class="event__label  event__type-output" for="event-destination-1">
-            ${he__WEBPACK_IMPORTED_MODULE_4___default().encode(typePoint)}
-           </label>
-           <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${selectDestination !== undefined ? selectDestination.name : ''}" list="destination-list-1">
-           <datalist id="destination-list-1">
-            ${allDestinations.map(destination => createTitleDestinationsTemplate(destination.name, destination.id)).join('')}
-           </datalist>
-         </div>
+          <div class="event__field-group  event__field-group--destination">
+            <label class="event__label  event__type-output" for="event-destination-1">
+              ${he__WEBPACK_IMPORTED_MODULE_4___default().encode(typePoint)}
+            </label>
+            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${selectDestination !== undefined ? selectDestination.name : ''}" list="destination-list-1" ${isDisabled ? 'disabled' : ''}>
+            <datalist id="destination-list-1">
+              ${allDestinations.map(destination => createTitleDestinationsTemplate(destination.name, destination.id)).join('')}
+            </datalist>
+          </div>
 
-         <div class="event__field-group  event__field-group--time">
-           <label class="visually-hidden" for="event-start-time-1">From</label>
-           <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${he__WEBPACK_IMPORTED_MODULE_4___default().encode(startFormatDate)}">
-           &mdash;
-           <label class="visually-hidden" for="event-end-time-1">To</label>
-           <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${he__WEBPACK_IMPORTED_MODULE_4___default().encode(endFormatDate)}">
-         </div>
+          <div class="event__field-group  event__field-group--time">
+            <label class="visually-hidden" for="event-start-time-1">From</label>
+            <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${he__WEBPACK_IMPORTED_MODULE_4___default().encode(startFormatDate)}" ${isDisabled ? 'disabled' : ''}>
+            &mdash;
+            <label class="visually-hidden" for="event-end-time-1">To</label>
+            <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${he__WEBPACK_IMPORTED_MODULE_4___default().encode(endFormatDate)}" ${isDisabled ? 'disabled' : ''}>
+          </div>
 
-         <div class="event__field-group  event__field-group--price">
-           <label class="event__label" for="event-price-1">
-             <span class="visually-hidden">Price</span>
-             &euro;
-           </label>
-           <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price" value="${price ? price : ''}">
-         </div>
+          <div class="event__field-group  event__field-group--price">
+            <label class="event__label" for="event-price-1">
+              <span class="visually-hidden">Price</span>
+              &euro;
+            </label>
+            <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price" value="${price ? price : ''}" ${isDisabled ? 'disabled' : ''}>
+          </div>
 
-         <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-         <button class="event__reset-btn" type="reset">Delete</button>
-         <button class="event__rollup-btn" type="button">
-           <span class="visually-hidden">Open event</span>
-         </button>
-       </header>
-       <section class="event__details">
-         <section class="event__section  event__section--offers">
-           <h3 class="event__section-title  event__section-title--offers">Offers</h3>
+          <button class="event__save-btn  btn  btn--blue" type="submit" ${isSaving ? 'disabled' : ''}>
+            ${isSaving ? 'Saving' : 'Save'}
+          </button>
+          <button class="event__reset-btn" type="reset" ${isDeleting ? 'disabled' : ''}>
+            ${isDeleting ? 'Deleting' : 'Delete'}
+          </button>
+          <button class="event__rollup-btn" type="button" ${isDisabled ? 'disabled' : ''}>
+            <span class="visually-hidden">Open event</span>
+          </button>
+        </header>
+        <section class="event__details">
+          <section class="event__section  event__section--offers">
+            <h3 class="event__section-title  event__section-title--offers">Offers</h3>
 
-           <div class="event__available-offers">
-             ${selectOffer.offers.map(offer => createTemplateOffer(offer, checkedOffers)).join('')}
-           </div>
-         </section>
+            <div class="event__available-offers">
+              ${selectOffer.offers.map(offer => createTemplateOffer(offer, checkedOffers, isDisabled)).join('')}
+            </div>
+          </section>
 
-         ${destinationId !== null ? `
-          <section class="event__section  event__section--destination">
-            <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-            <p class="event__destination-description">${he__WEBPACK_IMPORTED_MODULE_4___default().encode(selectDestination.description)}</p>
-          </section>` : ''}
+          ${destinationId !== null ? `
+            <section class="event__section  event__section--destination">
+              <h3 class="event__section-title  event__section-title--destination">Destination</h3>
+              <p class="event__destination-description">${he__WEBPACK_IMPORTED_MODULE_4___default().encode(selectDestination.description)}</p>
+            </section>` : ''}
 
-       </section>
-     </form>
+        </section>
+      </form>
   </li>
   `;
 }
@@ -1654,6 +1744,7 @@ class EventEditView extends _framework_view_abstract_stateful_view_js__WEBPACK_I
     this.element.querySelector('.event__type-wrapper').addEventListener('click', this.#onSelectTypePointClick);
     this.element.querySelector('.event__input').addEventListener('change', this.#onSelectDestinationsClick);
     this.element.querySelector('.event__input--price').addEventListener('input', this.#onInputPriceKey);
+    this.element.querySelector('.event__available-offers').addEventListener('change', this.#onSelectOfferClick);
     this.#setStartDatePicker();
     this.#setEndDatePicker();
   }
@@ -1716,6 +1807,17 @@ class EventEditView extends _framework_view_abstract_stateful_view_js__WEBPACK_I
       destinationId: this.#selectDestination.id
     });
   };
+  #onSelectOfferClick = evt => {
+    const indexSelectOffer = this._state.offers.findIndex(offer => offer === evt.target.dataset.id);
+    //let offers = this._state.offers;
+    if (indexSelectOffer === -1) {
+      this._state.offers.push(evt.target.dataset.id);
+    }
+    if (indexSelectOffer === 1) {
+      this._state.offers = [...this._state.offers.slice(0, indexSelectOffer), ...this._state.offers.slice(indexSelectOffer + 1)];
+    }
+    console.log(this._state.offers);
+  };
   #onInputPriceKey = evt => {
     this._state.price = +evt.target.value;
   };
@@ -1735,7 +1837,10 @@ class EventEditView extends _framework_view_abstract_stateful_view_js__WEBPACK_I
       ...point,
       checkedOffers: checkedOffers,
       offersByType: offers,
-      allDestinations: destinations
+      allDestinations: destinations,
+      isDisabled: false,
+      isSaving: false,
+      isDeleting: false
     };
   }
   static parseStateToPoint(state) {
@@ -1745,6 +1850,9 @@ class EventEditView extends _framework_view_abstract_stateful_view_js__WEBPACK_I
     delete point.checkedOffers;
     delete point.offersByType;
     delete point.allDestinations;
+    delete point.isDisabled;
+    delete point.isSaving;
+    delete point.isDeleting;
     return point;
   }
 }
@@ -5894,76 +6002,6 @@ function styleTagTransform(css, styleElement) {
 }
 module.exports = styleTagTransform;
 
-/***/ }),
-
-/***/ "./node_modules/nanoid/index.browser.js":
-/*!**********************************************!*\
-  !*** ./node_modules/nanoid/index.browser.js ***!
-  \**********************************************/
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   customAlphabet: () => (/* binding */ customAlphabet),
-/* harmony export */   customRandom: () => (/* binding */ customRandom),
-/* harmony export */   nanoid: () => (/* binding */ nanoid),
-/* harmony export */   random: () => (/* binding */ random),
-/* harmony export */   urlAlphabet: () => (/* reexport safe */ _url_alphabet_index_js__WEBPACK_IMPORTED_MODULE_0__.urlAlphabet)
-/* harmony export */ });
-/* harmony import */ var _url_alphabet_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./url-alphabet/index.js */ "./node_modules/nanoid/url-alphabet/index.js");
-
-let random = bytes => crypto.getRandomValues(new Uint8Array(bytes))
-let customRandom = (alphabet, defaultSize, getRandom) => {
-  let mask = (2 << (Math.log(alphabet.length - 1) / Math.LN2)) - 1
-  let step = -~((1.6 * mask * defaultSize) / alphabet.length)
-  return (size = defaultSize) => {
-    let id = ''
-    while (true) {
-      let bytes = getRandom(step)
-      let j = step
-      while (j--) {
-        id += alphabet[bytes[j] & mask] || ''
-        if (id.length === size) return id
-      }
-    }
-  }
-}
-let customAlphabet = (alphabet, size = 21) =>
-  customRandom(alphabet, size, random)
-let nanoid = (size = 21) =>
-  crypto.getRandomValues(new Uint8Array(size)).reduce((id, byte) => {
-    byte &= 63
-    if (byte < 36) {
-      id += byte.toString(36)
-    } else if (byte < 62) {
-      id += (byte - 26).toString(36).toUpperCase()
-    } else if (byte > 62) {
-      id += '-'
-    } else {
-      id += '_'
-    }
-    return id
-  }, '')
-
-
-/***/ }),
-
-/***/ "./node_modules/nanoid/url-alphabet/index.js":
-/*!***************************************************!*\
-  !*** ./node_modules/nanoid/url-alphabet/index.js ***!
-  \***************************************************/
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   urlAlphabet: () => (/* binding */ urlAlphabet)
-/* harmony export */ });
-const urlAlphabet =
-  'useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict'
-
-
 /***/ })
 
 /******/ 	});
@@ -6096,4 +6134,4 @@ contentPresenter.init();
 
 /******/ })()
 ;
-//# sourceMappingURL=bundle.38dfe0dd15c9e70d3673.js.map
+//# sourceMappingURL=bundle.b86edfa9009dd85fb413.js.map
