@@ -4,16 +4,10 @@ import AddPointView from '../view/add-point.js';
 import { UserAction, UpdateType } from '../const.js';
 import { isDatesEqual } from '../utils/date.js';
 import { render, replace, remove, RenderPosition } from '../framework/render.js';
-import { nanoid } from 'nanoid';
 
 const Mode = {
   DEFAULT: 'DEFAULT',
   EDITING: 'EDITING',
-};
-
-const ModeAddPoint = {
-  OPEN: 'OPEN',
-  CLOSE: 'CLOSE',
 };
 
 export default class RenderPoint {
@@ -29,14 +23,12 @@ export default class RenderPoint {
 
   #pointData = null;
   #mode = Mode.DEFAULT;
-  #modeAddPoint = ModeAddPoint.CLOSE;
 
-  constructor(containerListPoint, pointModel, onDateChange, onModeChange, modeAddPoint) {
+  constructor(containerListPoint, pointModel, onDateChange, onModeChange) {
     this.#containerPoint = containerListPoint;
     this.#pointModel = pointModel;
     this.#handlerChangeData = onDateChange;
     this.#handlerModeChange = onModeChange;
-    this.#modeAddPoint = modeAddPoint;
   }
 
   init(point) {
@@ -77,6 +69,7 @@ export default class RenderPoint {
 
     if (this.#mode === Mode.EDITING) {
       replace(this.#pointEditView, prevPointEditView);
+      this.#mode = Mode.DEFAULT;
     }
 
     remove(prevPointView);
@@ -85,9 +78,11 @@ export default class RenderPoint {
     render(this.#pointView, this.#containerPoint);
   }
 
-  resetView() {
+  resetView(modePatch) {
     if (this.#addPointView !== null) {
       this.#onClosePointAddClick();
+      const newPointButton = document.querySelector('.trip-main__event-add-btn');
+      newPointButton.disabled = false;
     }
 
     if (this.#mode !== Mode.DEFAULT) {
@@ -99,6 +94,11 @@ export default class RenderPoint {
       });
       this.#handlerSwapPointToEditClick();
     }
+
+    if (modePatch) {
+      this.#handlerSwapPointToEditClick();
+    }
+
   }
 
   #handlerSwapEditToPointClick() {
@@ -133,7 +133,6 @@ export default class RenderPoint {
     const coincidenceTime = isDatesEqual(this.#pointData.startDate, update.startDate) && isDatesEqual(this.#pointData.endDate, update.endDate);
     const coincidencePrice = this.#pointData.price === update.price;
 
-    this.#handlerSwapPointToEditClick();
     document.addEventListener('keydown', this.#escKeyDownHandler);
     this.#handlerChangeData(
       UserAction.UPDATE_POINT,
@@ -180,8 +179,49 @@ export default class RenderPoint {
     }
   };
 
+  setAborting() {
+    if (this.#mode === Mode.DEFAULT) {
+      this.#pointView.shake();
+      return;
+    }
+
+    const resetFormState = () => {
+      this.#pointEditView.updateElement({
+        isDisabled: false,
+        isSaving: false,
+        isDeleting: false,
+      });
+    };
+
+    this.#pointEditView.shake(resetFormState);
+  }
+
+  setSavingEditPoint() {
+    if (this.#mode === Mode.EDITING) {
+      this.#pointEditView.updateElement({
+        isDisabled: true,
+        isSaving: true,
+      });
+    }
+  }
+
+  setSavingNewPoint() {
+    this.#addPointView.updateElement({
+      isDisabled: true,
+      isSaving: true,
+    });
+  }
+
+  setDeleting() {
+    if (this.#mode === Mode.EDITING) {
+      this.#pointEditView.updateElement({
+        isDisabled: true,
+        isDeleting: true,
+      });
+    }
+  }
+
   #onClosePointAddClick = () => {
-    this.#modeAddPoint = ModeAddPoint.CLOSE;
     remove(this.#addPointView);
     this.#addPointView.reset({
       offers: [...this.#pointModel.offers],
@@ -194,7 +234,7 @@ export default class RenderPoint {
     this.#handlerChangeData(
       UserAction.ADD_POINT,
       UpdateType.MINOR,
-      {id: nanoid(), ...point},
+      point,
     );
   };
 }

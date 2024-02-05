@@ -10,11 +10,6 @@ import { RenderPosition } from '../framework/render.js';
 import { filter } from '../utils/filter.js';
 import LoadingView from '../view/loading-view.js';
 
-const ModeAddPoint = {
-  OPEN: 'OPEN',
-  CLOSE: 'CLOSE',
-};
-
 export default class contentPresenter {
   #tripList = new TripEvensListView();
   #loadingComponent = new LoadingView();
@@ -26,7 +21,6 @@ export default class contentPresenter {
   #contentContainer = null;
   #pointModel = null;
   #filterModel = null;
-  #modeAddPoint = ModeAddPoint.CLOSE;
   #currentTypeSort = SortType.DAY;
   #filterType = FilterType.EVERYTHING;
   #isLoading = true;
@@ -58,11 +52,11 @@ export default class contentPresenter {
   }
 
   init() {
-    this.#renderContents();
     this.#pointModel.init()
       .finally(() => {
         this.#renderHeader();
       });
+    this.#renderContents();
   }
 
   #renderNoPoint() {
@@ -105,7 +99,7 @@ export default class contentPresenter {
 
   #renderPoints(points) {
     for (const dataPoint of points) {
-      this.#pointPresenter = new PointPresenter(this.#tripList.element, this.#pointModel, this.#handleViewAction, this.#handlerModeChange, this.#modeAddPoint);
+      this.#pointPresenter = new PointPresenter(this.#tripList.element, this.#pointModel, this.#handleViewAction, this.#handlerModeChange);
       this.#pointPresenter.init(dataPoint);
 
       this.#pointPresenters.set(dataPoint.id, this.#pointPresenter);
@@ -121,16 +115,31 @@ export default class contentPresenter {
     render(this.#sortPointView, this.#contentContainer, RenderPosition.AFTERBEGIN);
   }
 
-  #handleViewAction = (actionType, updateType, update) => {
+  #handleViewAction = async (actionType, updateType, update) => {
     switch (actionType) {
       case UserAction.UPDATE_POINT:
-        this.#pointModel.updatePoint(updateType, update);
+        this.#pointPresenter.setSavingEditPoint();
+        try {
+          await this.#pointModel.updatePoint(updateType, update);
+        } catch(err) {
+          this.#pointPresenters.get(update.id).setAborting();
+        }
         break;
       case UserAction.ADD_POINT:
-        this.#pointModel.addPoints(updateType, update);
+        this.#pointPresenter.setSavingNewPoint();
+        try {
+          this.#pointModel.addPoints(updateType, update);
+        } catch(err) {
+          this.#pointPresenter.setAborting();
+        }
         break;
       case UserAction.DELETE_POINT:
-        this.#pointModel.deletePoints(updateType, update);
+        this.#pointPresenter.setDeleting();
+        try {
+          this.#pointModel.deletePoints(updateType, update);
+        } catch(err) {
+          this.#pointPresenters.get(update.id).setAborting();
+        }
         break;
     }
   };
@@ -139,6 +148,7 @@ export default class contentPresenter {
     switch (updateType) {
       case UpdateType.PATCH:
         this.#pointPresenters.get(data.id).init(data);
+        this.#pointPresenters.get(data.id).resetView(true);
         break;
       case UpdateType.MINOR:
         this.#clearContent();
