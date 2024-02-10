@@ -211,6 +211,7 @@ export default class ContentPresenter {
   };
 
   #handlerSortTypePoints = (sortType) => {
+
     if (this.#currentTypeSort === sortType) {
       return;
     }

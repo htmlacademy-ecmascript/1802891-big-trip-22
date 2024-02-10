@@ -3,6 +3,7 @@ import AbstractView from '../framework/view/abstract-view.js';
 function createPrice(pointModel) {
   const points = pointModel.points;
   let totalPrice = 0;
+
   for (let point of points) {
     totalPrice += point.price;
   }
