@@ -987,6 +987,7 @@ class ContentPresenter {
       return;
     }
     this.#clearContent();
+    this.#headerPresenter.renderInfoComponents();
     this.#currentTypeSort = sortType;
     this.#renderPoints(this.points);
     this.#renderSortPointsComponent();
@@ -1292,7 +1293,7 @@ class RenderPoint {
     document.removeEventListener('keydown', this.#escKeyDownHandler);
   };
   #handlerChangeFavoriteClick = () => {
-    this.#handlerChangeData(_const_js__WEBPACK_IMPORTED_MODULE_3__.UserAction.UPDATE_POINT, _const_js__WEBPACK_IMPORTED_MODULE_3__.UpdateType.PATCH, {
+    this.#handlerChangeData(_const_js__WEBPACK_IMPORTED_MODULE_3__.UserAction.UPDATE_POINT, _const_js__WEBPACK_IMPORTED_MODULE_3__.UpdateType.MINOR, {
       ...this.#pointData,
       isFavourite: !this.#pointData.isFavourite
     });
@@ -1895,7 +1896,6 @@ function createPrice(pointModel) {
   for (let point of points) {
     totalPrice += point.price;
   }
-  //pointModel.points.foreach((point) => totalPrice += point.price);
   return `
     <p class="trip-info__cost">
       Total: &euro;&nbsp;<span class="trip-info__cost-value">${totalPrice}</span>
@@ -6571,4 +6571,4 @@ contentPresenter.init();
 
 /******/ })()
 ;
-//# sourceMappingURL=bundle.5827376279abcfdab8d7.js.map
+//# sourceMappingURL=bundle.e477043d6f07d1c01e77.js.map
