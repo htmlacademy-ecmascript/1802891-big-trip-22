@@ -1,6 +1,6 @@
-import EditPointView from '../view/edit-point.js';
-import PointView from '../view/point.js';
-import AddPointView from '../view/add-point.js';
+import EditPointView from '../view/EditPointView.js';
+import PointView from '../view/PointView.js';
+import AddPointView from '../view/NewPointView.js';
 import { UserAction, UpdateType } from '../const.js';
 import { isDatesEqual } from '../utils/date.js';
 import { render, replace, remove, RenderPosition } from '../framework/render.js';
@@ -43,7 +43,6 @@ export default class RenderPoint {
       destination: this.#pointModel.getDestinationsById(point.destinationId),
       onEditPointClick: () => {
         this.#handlerSwapEditToPointClick();
-        document.addEventListener('keydown', this.#escKeyDownHandler);
       },
       onFavoriteChangeClick: this.#handlerChangeFavoriteClick,
     });
@@ -105,10 +104,16 @@ export default class RenderPoint {
     replace(this.#pointEditView, this.#pointView);
     this.#handlerModeChange();
     this.#mode = Mode.EDITING;
-    document.removeEventListener('keydown', this.#escKeyDownHandler);
+    document.addEventListener('keydown', this.#escKeyDownHandler);
   }
 
   #handlerSwapPointToEditClick() {
+    this.#pointEditView.reset({
+      point: this.#pointData,
+      checkedOffers: [...this.#pointModel.getOfferById(this.#pointData.typePoint, this.#pointData.offers)],
+      offers: [...this.#pointModel.offers],
+      destinations: this.#pointModel.destinations
+    });
     replace(this.#pointView, this.#pointEditView);
     this.#mode = Mode.DEFAULT;
     document.removeEventListener('keydown', this.#escKeyDownHandler);
@@ -124,7 +129,15 @@ export default class RenderPoint {
         destinations: this.#pointModel.destinations
       });
       this.#handlerSwapPointToEditClick();
-      document.removeEventListener('keydown', this.#escKeyDownHandler);
+    }
+  };
+
+  #escCloseNewPointHandler = (evt) => {
+    if (evt.key === 'Escape') {
+      this.#onClosePointAddClick();
+      const newPointButton = document.querySelector('.trip-main__event-add-btn');
+      newPointButton.disabled = false;
+      document.removeEventListener('keydown', this.#escCloseNewPointHandler);
     }
   };
 
@@ -151,13 +164,13 @@ export default class RenderPoint {
 
   #handlerCloseEdit = () => {
     this.#handlerSwapPointToEditClick();
-    document.addEventListener('keydown', this.#escKeyDownHandler);
+    document.removeEventListener('keydown', this.#escKeyDownHandler);
   };
 
   #handlerChangeFavoriteClick = () => {
     this.#handlerChangeData(
       UserAction.UPDATE_POINT,
-      UpdateType.PATCH,
+      UpdateType.MINOR,
       {...this.#pointData, isFavourite: !this.#pointData.isFavourite}
     );
   };
@@ -165,6 +178,7 @@ export default class RenderPoint {
   destroy() {
     remove(this.#pointView);
     remove(this.#pointEditView);
+    remove(this.#addPointView);
   }
 
   renderPointAdd = () => {
@@ -175,6 +189,7 @@ export default class RenderPoint {
         handlerClosePointClick: this.#onClosePointAddClick,
         onFormSubmit: this.#onSaveNewPointSubmit,
       });
+      document.addEventListener('keydown', this.#escCloseNewPointHandler);
       render(this.#addPointView, this.#containerPoint, RenderPosition.AFTERBEGIN);
     }
   };
@@ -196,13 +211,24 @@ export default class RenderPoint {
     this.#pointEditView.shake(resetFormState);
   }
 
-  setSavingEditPoint() {
-    if (this.#mode === Mode.EDITING) {
-      this.#pointEditView.updateElement({
-        isDisabled: true,
-        isSaving: true,
+  setAbortingNewPoint() {
+    this.#addPointView.shake();
+
+    const resetFormState = () => {
+      this.#addPointView.updateElement({
+        isDisabled: false,
+        isSaving: false,
       });
-    }
+    };
+
+    this.#addPointView.shake(resetFormState);
+  }
+
+  setSavingEditPoint() {
+    this.#pointEditView.updateElement({
+      isDisabled: true,
+      isSaving: true,
+    });
   }
 
   setSavingNewPoint() {
@@ -227,6 +253,7 @@ export default class RenderPoint {
       offers: [...this.#pointModel.offers],
       destinations: this.#pointModel.destinations
     });
+    document.removeEventListener('keydown', this.#escCloseNewPointHandler);
     this.#addPointView = null;
   };
 

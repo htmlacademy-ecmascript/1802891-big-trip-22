@@ -40,18 +40,16 @@ export default class TripSortPointsView extends AbstractView{
     this.#handlerSortByTypePoints = onSortTypePointsChange;
     this.#currentTypeSort = currentTypeSort;
 
-    this.element.addEventListener('change', this.#sortTypePoints);
+    this.element.addEventListener('change', this.#onSortPointsByTypeChange);
   }
 
   get template() {
     return createTripSortContent(this.#currentTypeSort);
   }
-  // evt.target.tagName !== 'LABEL'
 
-  #sortTypePoints = (evt) => {
+  #onSortPointsByTypeChange = (evt) => {
     if (evt.target.closest('.trip-sort__item ')) {
       this.#handlerSortByTypePoints(evt.target.dataset.sortType);
     }
-
   };
 }

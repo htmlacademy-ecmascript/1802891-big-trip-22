@@ -4,22 +4,19 @@ import he from 'he';
 
 import 'flatpickr/dist/flatpickr.min.css';
 
-function listType(type, isDisabled) {
+function createTemplateListType(type, isDisabled) {
   return `
-  <fieldset class="event__type-group">
-    <legend class="visually-hidden">Event type</legend>
-      <div class="event__type-item">
-        <input id="event-type-${type.toLowerCase()}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${type.toLowerCase()}" ${isDisabled ? 'disabled' : ''}>
-        <label class="event__type-label  event__type-label--${type.toLowerCase()}" for="event-type-${type.toLowerCase()}-1">${type}</label>
-      </div>
-  </fieldset>`;
+    <div class="event__type-item">
+      <input id="event-type-${type.toLowerCase()}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${type.toLowerCase()}" ${isDisabled ? 'disabled' : ''}>
+      <label class="event__type-label  event__type-label--${type.toLowerCase()}" for="event-type-${type.toLowerCase()}-1">${type}</label>
+    </div>`;
 }
 
 function createTemplateOffer(offer, isDisabled) {
   return `
   <div class="event__offer-selector">
-    <input class="event__offer-checkbox  visually-hidden" id="event-offer-luggage-${he.encode(offer.id)}" type="checkbox" name="event-offer-luggage" ${isDisabled ? 'disabled' : ''}>
-    <label class="event__offer-label" for="event-offer-luggage-${offer.id}">
+    <input class="event__offer-checkbox  visually-hidden" data-id="${he.encode(offer.id)}" id="event-offer-luggage-${he.encode(offer.id)}" type="checkbox" name="event-offer-luggage" ${isDisabled ? 'disabled' : ''}>
+    <label class="event__offer-label" data-id="${he.encode(offer.id)}" for="event-offer-luggage-${offer.id}">
       <span class="event__offer-title">${he.encode(offer.title)}</span>
       &plus;&euro;&nbsp;
       <span class="event__offer-price">$${offer.price}</span>
@@ -50,7 +47,10 @@ function createListEvents({ typePoint, destinationId, startDate, endDate, price,
             <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox" ${isDisabled ? 'disabled' : ''}>
 
             <div class="event__type-list">
-              ${offersByType.map((offerType) => listType(offerType.type, isDisabled)).join('')}
+              <fieldset class="event__type-group">
+                <legend class="visually-hidden">Event type</legend>
+                ${offersByType.map((offerType) => createTemplateListType(offerType.type, isDisabled)).join('')}
+              </fieldset>
             </div>
           </div>
 
@@ -85,27 +85,25 @@ function createListEvents({ typePoint, destinationId, startDate, endDate, price,
           </button>
           <button class="event__reset-btn" type="reset" ${isDisabled ? 'disabled' : ''}>Cancel</button>
         </header>
-
         <section class="event__details">
-            ${typePoint !== null ? `
-              <section class="event__section  event__section--offers">
+          ${selectType.offers.length !== 0 ? `
+            <section class="event__section  event__section--offers">
               <h3 class="event__section-title  event__section-title--offers">Offers</h3>
-
               <div class="event__available-offers">
                 ${selectType.offers.map((offer) => createTemplateOffer(offer, isDisabled)).join('')}
-              </div>` : ''}
-          </section>
-          ${destinationId !== null ? `
-          <section class="event__section  event__section--destination">
-            <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-            <p class="event__destination-description">${he.encode(selectDestination.description)}</p>
-
-            <div class="event__photos-container">
-              <div class="event__photos-tape">
-                ${selectDestination.pictures.map((picture) => createPicturesDestinationsTemplate(picture))}
               </div>
-            </div>
-          </section>` : ''}
+            </section>` : ''}
+          ${selectDestination !== undefined ? `
+            <section class="event__section  event__section--destination">
+              ${selectDestination.description.length !== 0 ? `
+                <h3 class="event__section-title  event__section-title--destination">Destination</h3>
+                <p class="event__destination-description">${he.encode(selectDestination.description)}</p>
+                <div class="event__photos-container">
+                  <div class="event__photos-tape">
+                    ${selectDestination.pictures.map((picture) => createPicturesDestinationsTemplate(picture))}
+                  </div>
+                </div>` : ''}
+            </section>` : ''}
         </section>
       </form>
   </li>
@@ -136,11 +134,15 @@ export default class TripEventsListView extends AbstractStatefulView{
   }
 
   _restoreHandlers() {
-    this.element.querySelector('.event').addEventListener('submit', this.#onEditPointSubmit);
+    const selectType = this._state.offersByType.find((offer) => offer.type === this._state.typePoint ? offer : '');
+    this.element.querySelector('.event').addEventListener('submit', this.#onSavePointSubmit);
     this.element.querySelector('.event__type-wrapper').addEventListener('click', this.#onSelectTypePointClick);
     this.element.querySelector('.event__input').addEventListener('change', this.#onSelectDestinationsClick);
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#onClosePointClick);
     this.element.querySelector('.event__input--price').addEventListener('input', this.#onInputPriceKey);
+    if (selectType.offers.length !== 0) {
+      this.element.querySelector('.event__available-offers').addEventListener('change', this.#onSelectOfferClick);
+    }
     this.#setStartDatePicker();
     this.#setEndDatePicker();
   }
@@ -174,7 +176,7 @@ export default class TripEventsListView extends AbstractStatefulView{
     this._state.price = +evt.target.value;
   };
 
-  #onEditPointSubmit = (evt) => {
+  #onSavePointSubmit = (evt) => {
     evt.preventDefault();
     this.#handlerSaveNewPointClick(TripEventsListView.parseStateToPoint(this._state));
     this.#newPointButton.disabled = false;
@@ -224,12 +226,22 @@ export default class TripEventsListView extends AbstractStatefulView{
     });
   };
 
+  #onSelectOfferClick = (evt) => {
+    const indexSelectOffer = [...this._state.offers].findIndex((id) => id === evt.target.dataset.id);
+    if (indexSelectOffer === -1) {
+      this._state.offers.push(evt.target.dataset.id);
+      return;
+    }
+
+    this._state.offers = [...this._state.offers.slice(0,indexSelectOffer),...this._state.offers.slice(indexSelectOffer + 1)];
+  };
+
   static parsePointToState(offers, destinations) {
     return {
       typePoint: 'flight',
       startDate: null,
       endDate: null,
-      price: null,
+      price: 0,
       destinationId: null,
       isFavourite: false,
       offers: [],

@@ -1,7 +1,7 @@
-import TripEvensListView from '../view/trip-list.js';
-import SortPointView from '../view/sort-point.js';
+import TripEvensListView from '../view/ListPointView.js';
+import SortPointView from '../view/TripSortPointsView.js';
 import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
-import NoPointView from '../view/list-point-empty.js';
+import NoPointView from '../view/NoPointView.js';
 import PointPresenter from './point-presenter.js';
 import { sortPointByTime, sortPointByPrice, sortPointsByDay } from '../utils/point.js';
 import { SortType, UpdateType, UserAction, FilterType } from '../const.js';
@@ -9,13 +9,13 @@ import { remove, render } from '../framework/render.js';
 import HeaderPresenter from './header-presenter.js';
 import { RenderPosition } from '../framework/render.js';
 import { filter } from '../utils/filter.js';
-import LoadingView from '../view/loading-view.js';
+import LoadingView from '../view/LoadingView.js';
 
 const TimeLimit = {
   LOWER_LIMIT: 350,
   UPPER_LIMIT: 1000,
 };
-export default class contentPresenter {
+export default class ContentPresenter {
   #tripList = new TripEvensListView();
   #loadingComponent = new LoadingView();
   #noPointComponent = null;
@@ -72,6 +72,7 @@ export default class contentPresenter {
 
   #renderNoPoint() {
     this.#noPointComponent = new NoPointView({
+      isErrorServer: false,
       filterType: this.#filterType,
     });
     render(this.#noPointComponent, this.#contentContainer);
@@ -81,15 +82,24 @@ export default class contentPresenter {
     render(this.#loadingComponent, this.#contentContainer, RenderPosition.AFTERBEGIN);
   }
 
-  #renderContents() {
-    if (this.#isLoading) {
+  #renderContents(resetSortType = false) {
+    this.#pointPresenter = new PointPresenter(this.#tripList.element, this.#pointModel, this.#handleViewAction, this.#handlerModeChange);
+    if (this.#isLoading && !this.#pointModel.isErrorServer) {
       this.#renderLoading();
       return;
     }
 
-    if (this.#pointModel.points.length === 0) {
+    if (resetSortType) {
+      this.#currentTypeSort = SortType.DAY;
+    }
+
+    if (this.points.length === 0 && !this.#pointModel.isErrorServer) {
       this.#renderNoPoint();
       return;
+    }
+
+    if (this.#headerPresenter !== null) {
+      this.#headerPresenter.renderInfoComponents();
     }
 
     this.#renderSortPointsComponent();
@@ -102,6 +112,7 @@ export default class contentPresenter {
       handlerOpenAddPoint: this.#handlerOpenAddPoint,
       filtersModel: this.#filterModel,
       pointModel: this.#pointModel,
+      points: this.points
     });
     this.#headerPresenter.init();
     this.#headerPresenter.initFilters();
@@ -131,7 +142,7 @@ export default class contentPresenter {
 
     switch (actionType) {
       case UserAction.UPDATE_POINT:
-        this.#pointPresenter.setSavingEditPoint();
+        this.#pointPresenters.get(update.id).setSavingEditPoint();
         try {
           await this.#pointModel.updatePoint(updateType, update);
         } catch(err) {
@@ -141,15 +152,15 @@ export default class contentPresenter {
       case UserAction.ADD_POINT:
         this.#pointPresenter.setSavingNewPoint();
         try {
-          this.#pointModel.addPoints(updateType, update);
+          await this.#pointModel.addPoints(updateType, update);
         } catch(err) {
-          this.#pointPresenter.setAborting();
+          this.#pointPresenter.setAbortingNewPoint();
         }
         break;
       case UserAction.DELETE_POINT:
-        this.#pointPresenter.setDeleting();
+        this.#pointPresenters.get(update.id).setDeleting();
         try {
-          this.#pointModel.deletePoints(updateType, update);
+          await this.#pointModel.deletePoints(updateType, update);
         } catch(err) {
           this.#pointPresenters.get(update.id).setAborting();
         }
@@ -185,6 +196,7 @@ export default class contentPresenter {
     this.#pointPresenters.forEach((presenter) => presenter.destroy());
     this.#pointPresenters.clear();
 
+    this.#headerPresenter.removeInfoComponents();
     remove(this.#loadingComponent);
     remove(this.#sortPointView);
     remove(this.#noPointComponent);
@@ -199,17 +211,29 @@ export default class contentPresenter {
   };
 
   #handlerSortTypePoints = (sortType) => {
+
     if (this.#currentTypeSort === sortType) {
       return;
     }
+
     this.#clearContent();
     this.#currentTypeSort = sortType;
     this.#renderPoints(this.points);
     this.#renderSortPointsComponent();
+    this.#headerPresenter.renderInfoComponents();
   };
 
   #handlerOpenAddPoint = () => {
+    if (this.#noPointComponent !== null) {
+      remove(this.#noPointComponent);
+    }
     this.#handlerModeChange();
+    this.#currentTypeSort = SortType.DAY;
+    this.#filterType = FilterType.EVERYTHING;
+    remove(this.#sortPointView);
+    this.#renderSortPointsComponent();
+    this.#headerPresenter.removeFilters();
+    this.#headerPresenter.initFilters();
     this.#pointPresenter.renderPointAdd();
   };
 }
