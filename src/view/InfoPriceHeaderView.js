@@ -6,7 +6,7 @@ function createPrice(pointModel) {
   for (let point of points) {
     totalPrice += point.price;
   }
-  //pointModel.points.foreach((point) => totalPrice += point.price);
+
   return `
     <p class="trip-info__cost">
       Total: &euro;&nbsp;<span class="trip-info__cost-value">${totalPrice}</span>
