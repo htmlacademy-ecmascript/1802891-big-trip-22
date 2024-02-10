@@ -170,7 +170,7 @@ export default class RenderPoint {
   #handlerChangeFavoriteClick = () => {
     this.#handlerChangeData(
       UserAction.UPDATE_POINT,
-      UpdateType.PATCH,
+      UpdateType.MINOR,
       {...this.#pointData, isFavourite: !this.#pointData.isFavourite}
     );
   };

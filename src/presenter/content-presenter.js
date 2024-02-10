@@ -214,7 +214,9 @@ export default class ContentPresenter {
     if (this.#currentTypeSort === sortType) {
       return;
     }
+
     this.#clearContent();
+    this.#headerPresenter.renderInfoComponents();
     this.#currentTypeSort = sortType;
     this.#renderPoints(this.points);
     this.#renderSortPointsComponent();
