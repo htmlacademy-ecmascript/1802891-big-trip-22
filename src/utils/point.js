@@ -14,7 +14,7 @@ function sortPointByTime(pointA, pointB) {
 }
 
 function sortPointByPrice(pointA, pointB) {
-  return pointB.price - pointA.price;
+  return pointA.price - pointB.price;
 }
 
 function sortPointsByDay (pointA, pointB) {

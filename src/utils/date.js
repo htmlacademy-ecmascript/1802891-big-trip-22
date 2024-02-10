@@ -1,11 +1,11 @@
-import Dayjs from 'dayjs';
+import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import { MONTH_DATA_FORMAT, TIME_FORMAT_M, TIME_FORMAT_H, TIME_FORMAT_D, YEAR_MONTH_DAY } from '../const.js';
+import { FormatTime } from '../const.js';
 
-Dayjs.extend(utc);
+dayjs.extend(utc);
 
-function humanizeOrderData(date, format = MONTH_DATA_FORMAT) {
-  return date ? Dayjs.utc(date).format(format) : '';
+function humanizeOrderData(date, format = FormatTime.MONTH_DATA_FORMA) {
+  return date ? dayjs.utc(date).format(format) : '';
 }
 /**
  * Метод для рассчета времени
@@ -14,18 +14,21 @@ function humanizeOrderData(date, format = MONTH_DATA_FORMAT) {
  * @return {string} — возращает подсчитанное время в днях,часах,минутах
  */
 function dateSubtract(dateEnd, dateStart) {
-  const totalData = `${humanizeOrderData((Dayjs(dateEnd).diff(Dayjs(dateStart))), TIME_FORMAT_D)}D
-  ${humanizeOrderData((Dayjs(dateEnd).diff(Dayjs(dateStart))), TIME_FORMAT_H)}H
-  ${humanizeOrderData((Dayjs(dateEnd).diff(Dayjs(dateStart))), TIME_FORMAT_M)}M`;
+  const day = humanizeOrderData((dayjs(dateEnd).diff(dayjs(dateStart), 'day')), 'DD');
+  const hour = humanizeOrderData((dayjs(dateEnd).diff(dayjs(dateStart))), FormatTime.TIME_FORMAT_H);
+  const minute = humanizeOrderData((dayjs(dateEnd).diff(dayjs(dateStart))), FormatTime.TIME_FORMAT_M);
+  const totalData = `${day !== '' ? `${day}D` : ''}
+  ${day !== '' || hour !== '00' ? `${hour}H` : ''}
+  ${day > 0 || hour > 0 || minute !== '00' ? `${minute}M` : ''}`;
   return totalData;
 }
 
-const isDateFuture = (start) => Dayjs().isBefore(start);
-const isDatePresent = (start, end) => Dayjs().isAfter(start) && Dayjs().isBefore(end);
-const isDatePast = (end) => Dayjs().isAfter(end);
+const isDateFuture = (start) => dayjs().isBefore(start);
+const isDatePresent = (start, end) => dayjs().isAfter(start) && dayjs().isBefore(end);
+const isDatePast = (end) => dayjs().isAfter(end);
 
 function isDatesEqual(dateA, dateB) {
-  return (dateA === null && dateB === null) || Dayjs(dateA).isSame(dateB, YEAR_MONTH_DAY);
+  return (dateA === null && dateB === null) || dayjs(dateA).isSame(dateB, FormatTime.YEAR_MONTH_DAY);
 }
 
 export { humanizeOrderData, dateSubtract, isDatesEqual, isDateFuture, isDatePast, isDatePresent };

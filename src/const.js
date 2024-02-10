@@ -1,11 +1,14 @@
-const YEAR_MONTH_DAY = 'YYYY/M/D HH:mm';
-const MONTH_DATA_FORMAT = 'MMM D';
-const TIME_FORMAT_H_M = 'HH:mm';
-const TIME_FORMAT_M = 'mm';
-const TIME_FORMAT_H = 'HH';
-const TIME_FORMAT_D = 'DD';
-
-const POINT_COUNT = 3;
+const FormatTime = {
+  YEAR_MONTH_DAY: 'YYYY/M/D HH:mm',
+  YEAR_MONTH_DAY_TIME: 'D/M/YY HH:mm',
+  MONTH_DATA_FORMA: 'MMM D',
+  TIME_FORMAT_H_M: 'HH:mm',
+  TIME_FORMAT_M: 'mm',
+  TIME_FORMAT_H: 'HH',
+  TIME_FORMAT_D: 'DD',
+  TIME_FORMAT_MMM: 'MMM',
+  TIME_FORMAT_MMM_DD: 'DD MMM',
+};
 
 const UserAction = {
   UPDATE_POINT: 'UPDATE_POINT',
@@ -40,4 +43,4 @@ const NoTasksTextType = {
   [FilterType.FUTURE]: 'There are no future events now',
 };
 
-export { UserAction, UpdateType, MONTH_DATA_FORMAT, YEAR_MONTH_DAY, TIME_FORMAT_H_M, POINT_COUNT, TIME_FORMAT_M, TIME_FORMAT_H, TIME_FORMAT_D, SortType, FilterType, NoTasksTextType };
+export { UserAction, UpdateType, FormatTime, SortType, FilterType, NoTasksTextType, };

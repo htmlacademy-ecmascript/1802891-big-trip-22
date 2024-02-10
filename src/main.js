@@ -9,6 +9,7 @@ const tripContent = document.querySelector('.trip-events');
 
 const pointModel = new PointModel({
   pointApiService: new PointApiService(END_POINT, AUTHORIZATION),
+  contentContainer: tripContent,
 });
 const filterModel = new FilterModel();
 

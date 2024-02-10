@@ -1,5 +1,5 @@
 import { humanizeOrderData, dateSubtract } from '../utils/date.js';
-import { TIME_FORMAT_H_M } from '../const.js';
+import { FormatTime } from '../const.js';
 import AbstractView from '../framework/view/abstract-view.js';
 
 function createTemplateOffer(offer) {
@@ -15,8 +15,8 @@ function createTemplateOffer(offer) {
 
 function createOrderTemplate(point, offers, destination) {
   const {typePoint, startDate, endDate, price, isFavourite} = point;
-  const formatStartTime = humanizeOrderData(startDate, TIME_FORMAT_H_M);
-  const formatEndTime = humanizeOrderData(endDate, TIME_FORMAT_H_M);
+  const formatStartTime = humanizeOrderData(startDate, FormatTime.TIME_FORMAT_H_M);
+  const formatEndTime = humanizeOrderData(endDate, FormatTime.TIME_FORMAT_H_M);
 
   return `
     <li class="trip-events__item">

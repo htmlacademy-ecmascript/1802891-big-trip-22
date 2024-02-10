@@ -1,15 +1,22 @@
 import { UpdateType } from '../const.js';
+import { render } from '../framework/render.js';
 import Observable from '../framework/observable.js';
+import ErrorServerView from '../view/ErrorServerView.js';
+
 
 export default class PointModel extends Observable{
   #points = [];
   #offers = [];
   #destinations = [];
   #pointApiService = null;
+  #errorServerView = null;
+  isErrorServer = null;
+  #contentContainer = null;
 
-  constructor({pointApiService}) {
+  constructor({pointApiService, contentContainer}) {
     super();
     this.#pointApiService = pointApiService;
+    this.#contentContainer = contentContainer;
 
   }
 
@@ -39,10 +46,14 @@ export default class PointModel extends Observable{
       this.#points = points.map(this.#adaptToClient);
       this.#destinations = await this.#pointApiService.destinations;
       this.#offers = await this.#pointApiService.offers;
+      this.isErrorServer = false;
     } catch(err) {
       this.#points = [];
       this.#destinations = [];
       this.#offers = [];
+      this.isErrorServer = true;
+      this.#errorServerView = new ErrorServerView();
+      render(this.#errorServerView, this.#contentContainer);
     }
 
     this._notify(UpdateType.INIT);
