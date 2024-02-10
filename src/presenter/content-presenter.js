@@ -64,7 +64,7 @@ export default class ContentPresenter {
 
   init() {
     this.#pointModel.init()
-      .finally((err) => {
+      .finally(() => {
         this.#renderHeader();
       });
     this.#renderContents();
