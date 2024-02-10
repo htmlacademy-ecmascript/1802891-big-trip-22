@@ -987,10 +987,10 @@ class ContentPresenter {
       return;
     }
     this.#clearContent();
-    this.#headerPresenter.renderInfoComponents();
     this.#currentTypeSort = sortType;
     this.#renderPoints(this.points);
     this.#renderSortPointsComponent();
+    this.#headerPresenter.renderInfoComponents();
   };
   #handlerOpenAddPoint = () => {
     if (this.#noPointComponent !== null) {
@@ -6571,4 +6571,4 @@ contentPresenter.init();
 
 /******/ })()
 ;
-//# sourceMappingURL=bundle.6b6e5e72d9c70747201f.js.map
+//# sourceMappingURL=bundle.a0471feea372d24c39b1.js.map
