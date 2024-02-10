@@ -85,6 +85,7 @@ export default class ContentPresenter {
   #renderContents(resetSortType = false) {
     this.#pointPresenter = new PointPresenter(this.#tripList.element, this.#pointModel, this.#handleViewAction, this.#handlerModeChange);
     if (this.#isLoading && !this.#pointModel.isErrorServer) {
+      this.#clearContent();
       this.#renderLoading();
       return;
     }
@@ -187,7 +188,11 @@ export default class ContentPresenter {
       case UpdateType.INIT:
         this.#isLoading = false;
         remove(this.#loadingComponent);
-        this.#renderContents();
+        if (!this.#isLoading) {
+          this.#clearContent();
+        }else {
+          this.#renderContents();
+        }
         break;
     }
   };
@@ -196,7 +201,9 @@ export default class ContentPresenter {
     this.#pointPresenters.forEach((presenter) => presenter.destroy());
     this.#pointPresenters.clear();
 
-    this.#headerPresenter.removeInfoComponents();
+    if (this.#headerPresenter !== null) {
+      this.#headerPresenter.removeInfoComponents();
+    }
     remove(this.#loadingComponent);
     remove(this.#sortPointView);
     remove(this.#noPointComponent);
