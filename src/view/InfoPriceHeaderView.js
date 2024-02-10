@@ -4,7 +4,7 @@ function createPrice(pointModel) {
   const points = pointModel.points;
   let totalPrice = 0;
 
-  for (let point of points) {
+  for (const point of points) {
     totalPrice += point.price;
   }
 
