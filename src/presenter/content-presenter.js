@@ -217,10 +217,10 @@ export default class ContentPresenter {
     }
 
     this.#clearContent();
-    this.#headerPresenter.renderInfoComponents();
     this.#currentTypeSort = sortType;
     this.#renderPoints(this.points);
     this.#renderSortPointsComponent();
+    this.#headerPresenter.renderInfoComponents();
   };
 
   #handlerOpenAddPoint = () => {
