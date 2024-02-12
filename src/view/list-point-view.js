@@ -7,7 +7,7 @@ function createListEvents() {
 }
 
 
-export default class TripListPointView extends AbstractView{
+export default class ListPointView extends AbstractView{
   get template() {
     return createListEvents();
   }

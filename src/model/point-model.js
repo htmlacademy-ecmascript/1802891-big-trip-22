@@ -1,7 +1,7 @@
 import { UpdateType } from '../const.js';
 import { render } from '../framework/render.js';
 import Observable from '../framework/observable.js';
-import ErrorServerView from '../view/ErrorServerView.js';
+import ErrorServerView from '../view/error-server-view.js';
 
 
 export default class PointModel extends Observable{

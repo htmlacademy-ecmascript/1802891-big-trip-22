@@ -29,6 +29,13 @@ const SortType = {
   PRICE: 'price',
 };
 
+const CountPoint = {
+  THREE: 3,
+  TWO: 2,
+  ONE: 1,
+  ZERO: 0,
+};
+
 const FilterType = {
   EVERYTHING: 'everything',
   FUTURE: 'future',
@@ -43,4 +50,4 @@ const NoTasksTextType = {
   [FilterType.FUTURE]: 'There are no future events now',
 };
 
-export { UserAction, UpdateType, FormatTime, SortType, FilterType, NoTasksTextType, };
+export { UserAction, UpdateType, FormatTime, SortType, FilterType, NoTasksTextType, CountPoint};

@@ -1,5 +1,5 @@
 import ContentPresenter from './presenter/content-presenter.js';
-import PointModel from './model/points-model.js';
+import PointModel from './model/point-model.js';
 import FilterModel from './model/filter-model.js';
 import PointApiService from './point-api-service.js';
 

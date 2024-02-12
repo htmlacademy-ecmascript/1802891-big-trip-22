@@ -1,10 +1,10 @@
-import FilterView from '../view/TripFilterControlsView.js';
-import InfoDataView from '../view/InfoTextHeaderView.js';
-import InfoTitleView from '../view/InfoTitleHeaderView.js';
-import InfoPriceView from '../view/InfoPriceHeaderView.js';
-import InfoContainerView from '../view/InfoContainerView.js';
-import InfoWrapperContentView from '../view/InfoWrapperContentView.js';
-import ButtonAddPointView from '../view/ButtonAddNewPointView.js';
+import FilterView from '../view/trip-filter-view.js';
+import InfoDataView from '../view/info-day-view.js';
+import InfoTitleView from '../view/info-title-view.js';
+import InfoPriceView from '../view/info-price-view.js';
+import InfoContainerView from '../view/info-container-view.js';
+import InfoWrapperContentView from '../view/info-wrapper-content-view.js';
+import ButtonAddPointView from '../view/button-add-point-view.js';
 import { FilterType, UpdateType } from '../const.js';
 import { filter } from '../utils/filter.js';
 import {render, replace, remove, RenderPosition} from '../framework/render.js';
@@ -15,6 +15,7 @@ export default class HeaderPresenter {
   #infoPriceView = null;
   #infoTitleView = null;
   #infoDataView = null;
+  #buttonAddPointView = null;
 
 
   #handlerOpenPointClick = null;
@@ -46,13 +47,14 @@ export default class HeaderPresenter {
     this.#infoDataView = new InfoDataView(this.#pointModel);
     this.#infoPriceView = new InfoPriceView(this.#pointModel);
     this.#infoTitleView = new InfoTitleView(this.#pointModel);
+    this.#buttonAddPointView = new ButtonAddPointView(this.#handlerOpenPointClick, this.#pointModel.isErrorServer);
 
     render(this.#tripContainer, this.#headerContainer, RenderPosition.AFTERBEGIN);
     render(this.#infoPriceView, this.#tripContainer.element);
     render(this.#tripWrapperContent, this.#tripContainer.element, RenderPosition.AFTERBEGIN);
     render(this.#infoTitleView, this.#tripWrapperContent.element);
     render(this.#infoDataView , this.#tripWrapperContent.element);
-    render(new ButtonAddPointView(this.#handlerOpenPointClick, this.#pointModel.isErrorServer), this.#headerContainer);
+    render(this.#buttonAddPointView, this.#headerContainer);
   }
 
   initFilters() {
@@ -99,6 +101,10 @@ export default class HeaderPresenter {
   #handlerFilterTypeChange = (filterType) => {
     if (this.#filtersModel.filter === filterType) {
       return;
+    }
+
+    if (this.#buttonAddPointView.element.disabled) {
+      this.#buttonAddPointView.element.disabled = false;
     }
 
     this.#filtersModel.setFilter(UpdateType.MAJOR, filterType);

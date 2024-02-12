@@ -5,7 +5,7 @@ import { FormatTime } from '../const.js';
 dayjs.extend(utc);
 
 function humanizeOrderData(date, format = FormatTime.MONTH_DATA_FORMA) {
-  return date ? dayjs.utc(date).format(format) : '';
+  return date ? dayjs(date).format(format) : '';
 }
 /**
  * Метод для рассчета времени
@@ -14,11 +14,11 @@ function humanizeOrderData(date, format = FormatTime.MONTH_DATA_FORMA) {
  * @return {string} — возращает подсчитанное время в днях,часах,минутах
  */
 function dateSubtract(dateEnd, dateStart) {
-  const day = humanizeOrderData((dayjs(dateEnd).diff(dayjs(dateStart), 'day')), 'DD');
-  const hour = humanizeOrderData((dayjs(dateEnd).diff(dayjs(dateStart))), FormatTime.TIME_FORMAT_H);
-  const minute = humanizeOrderData((dayjs(dateEnd).diff(dayjs(dateStart))), FormatTime.TIME_FORMAT_M);
-  const totalData = `${day !== '' ? `${day}D` : ''}
-  ${day !== '' || hour !== '00' ? `${hour}H` : ''}
+  const day = (dayjs(dateEnd).diff(dayjs(dateStart), 'day'));
+  const hour = humanizeOrderData(dayjs.utc(dayjs(dateEnd).diff(dayjs(dateStart))), FormatTime.TIME_FORMAT_H);
+  const minute = humanizeOrderData((dayjs.utc(dateEnd).diff(dayjs(dateStart))), FormatTime.TIME_FORMAT_M);
+  const totalData = `${day !== 0 ? `${day < 10 ? `0${day}` : day}D` : ''}
+  ${day !== 0 || hour !== '00' ? `${hour}H` : ''}
   ${day > 0 || hour > 0 || minute !== '00' ? `${minute}M` : ''}`;
   return totalData;
 }
