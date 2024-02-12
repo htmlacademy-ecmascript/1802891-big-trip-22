@@ -107,7 +107,7 @@ export default class ContentPresenter {
 
     this.#renderSortPointsComponent();
     this.#renderPoints(this.points);
-  }
+  };
 
   #renderHeader() {
     this.#headerPresenter = new HeaderPresenter({
