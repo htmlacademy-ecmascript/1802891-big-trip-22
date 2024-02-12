@@ -1,5 +1,7 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import flatpickr from 'flatpickr';
+import { FormatTime } from '../const.js';
+import { humanizeOrderData } from '../utils/date.js';
 import he from 'he';
 
 import 'flatpickr/dist/flatpickr.min.css';
@@ -12,14 +14,15 @@ function createTemplateListType(type, isDisabled) {
     </div>`;
 }
 
-function createTemplateOffer(offer, isDisabled) {
+function createTemplateOffer(offer, checkedOffers, isDisabled) {
+  const checkedOffer = checkedOffers?.map((allOffer) => allOffer.id === offer.id);
   return `
   <div class="event__offer-selector">
-    <input class="event__offer-checkbox  visually-hidden" data-id="${he.encode(offer.id)}" id="event-offer-luggage-${he.encode(offer.id)}" type="checkbox" name="event-offer-luggage" ${isDisabled ? 'disabled' : ''}>
-    <label class="event__offer-label" data-id="${he.encode(offer.id)}" for="event-offer-luggage-${offer.id}">
-      <span class="event__offer-title">${he.encode(offer.title)}</span>
+    <input class="event__offer-checkbox visually-hidden" data-id="${he.encode(offer.id)}" id="event-offer-${he.encode(offer.id)}" type="checkbox" name="event-offer-luggage" ${checkedOffer?.map((isOffer) => isOffer === true ? 'checked ' : '').join('')} ${isDisabled ? 'disabled' : ''}>
+    <label class="event__offer-label" data-id="${he.encode(offer.id)}" for="event-offer-${he.encode(offer.id)}">
+      <span class="event__offer-title" data-id="${he.encode(offer.id)}">${he.encode(offer.title)}</span>
       &plus;&euro;&nbsp;
-      <span class="event__offer-price">$${offer.price}</span>
+      <span class="event__offer-price" data-id="${he.encode(offer.id)}">$${offer.price}</span>
     </label>
   </div>`;
 }
@@ -32,9 +35,10 @@ function createTitleDestinationsTemplate(title, id) {
   return `<option value="${he.encode(title)}" data-id="${he.encode(id)}">${he.encode(title)}</option>`;
 }
 
-function createListEvents({ typePoint, destinationId, startDate, endDate, price, offersByType, allDestinations, isDisabled, isSaving}) {
+function createListEvents({ typePoint, offers, destinationId, startDate, endDate, price, offersByType, allDestinations, isDisabled, isSaving}) {
   const selectDestination = allDestinations.find((selectedDestination) => selectedDestination.id === destinationId);
   const selectType = offersByType.find((offer) => offer.type === typePoint.toLowerCase() ? offer : '');
+  const checkedOffers = selectType?.offers.filter((item) => offers?.find((id) => item.id === id));
   return `
     <li class="trip-events__item">
       <form class="event event--edit" action="#" method="post">
@@ -86,24 +90,28 @@ function createListEvents({ typePoint, destinationId, startDate, endDate, price,
           <button class="event__reset-btn" type="reset" ${isDisabled ? 'disabled' : ''}>Cancel</button>
         </header>
         <section class="event__details">
-          ${selectType.offers.length !== 0 ? `
             <section class="event__section  event__section--offers">
-              <h3 class="event__section-title  event__section-title--offers">Offers</h3>
-              <div class="event__available-offers">
-                ${selectType.offers.map((offer) => createTemplateOffer(offer, isDisabled)).join('')}
-              </div>
-            </section>` : ''}
-          ${selectDestination !== undefined ? `
+              ${selectType.offers.length !== 0 ? `
+                <h3 class="event__section-title  event__section-title--offers">Offers</h3>
+                <div class="event__available-offers">
+                  ${selectType.offers.map((offer) => createTemplateOffer(offer, checkedOffers, isDisabled)).join('')}
+                </div>
+              ` : ''}
+            </section>
             <section class="event__section  event__section--destination">
-              ${selectDestination.description.length !== 0 ? `
-                <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-                <p class="event__destination-description">${he.encode(selectDestination.description)}</p>
-                <div class="event__photos-container">
-                  <div class="event__photos-tape">
-                    ${selectDestination.pictures.map((picture) => createPicturesDestinationsTemplate(picture))}
-                  </div>
-                </div>` : ''}
-            </section>` : ''}
+              ${selectDestination !== undefined ? `
+                ${selectDestination.description.length !== 0 ? `
+                  <h3 class="event__section-title  event__section-title--destination">Destination</h3>
+                  <p class="event__destination-description">${he.encode(selectDestination.description)}</p>
+                  ${selectDestination.pictures.length !== 0 ? `
+                    <div class="event__photos-container">
+                      <div class="event__photos-tape">
+                        ${selectDestination.pictures.map((picture) => createPicturesDestinationsTemplate(picture)).join('')}
+                      </div>
+                    </div>` : ''}
+                  ` : ''}
+              ` : ''}
+            </section>
         </section>
       </form>
   </li>
@@ -111,7 +119,7 @@ function createListEvents({ typePoint, destinationId, startDate, endDate, price,
 }
 
 
-export default class TripEventsListView extends AbstractStatefulView{
+export default class addNewPointView extends AbstractStatefulView{
   #destinations = null;
   #selectDestination = null;
   #handlerSaveNewPointClick = null;
@@ -122,7 +130,7 @@ export default class TripEventsListView extends AbstractStatefulView{
   constructor({offers, destinations, handlerClosePointClick, onFormSubmit }) {
     super();
     this.#destinations = destinations;
-    this._setState(TripEventsListView.parsePointToState(offers, destinations));
+    this._setState(addNewPointView.parsePointToState(offers, destinations));
     this.#handlerClosePointClick = handlerClosePointClick;
     this.#handlerSaveNewPointClick = onFormSubmit;
 
@@ -149,7 +157,7 @@ export default class TripEventsListView extends AbstractStatefulView{
 
   reset({offers, destinations}) {
     this.updateElement(
-      TripEventsListView.parsePointToState(offers, destinations)
+      addNewPointView.parsePointToState(offers, destinations)
     );
   }
 
@@ -178,7 +186,7 @@ export default class TripEventsListView extends AbstractStatefulView{
 
   #onSavePointSubmit = (evt) => {
     evt.preventDefault();
-    this.#handlerSaveNewPointClick(TripEventsListView.parseStateToPoint(this._state));
+    this.#handlerSaveNewPointClick(addNewPointView.parseStateToPoint(this._state));
     this.#newPointButton.disabled = false;
   };
 
@@ -187,32 +195,6 @@ export default class TripEventsListView extends AbstractStatefulView{
     this.#handlerClosePointClick();
     this.#newPointButton.disabled = false;
   };
-
-  #setStartDatePicker() {
-    this.#datePicker = flatpickr(
-      this.element.querySelector('#event-start-time-1'),
-      {
-        dateFormat: 'y/m/d h:i',
-        enableTime: true,
-        maxDate: this._state.endDate,
-        defaultDate: this._state.startDate,
-        onChange: this.#onStartDateChange,
-      },
-    );
-  }
-
-  #setEndDatePicker() {
-    this.#datePicker = flatpickr(
-      this.element.querySelector('#event-end-time-1'),
-      {
-        dateFormat: 'y/m/d h:i',
-        enableTime: true,
-        minDate: this._state.startDate,
-        defaultDate: this._state.endDate,
-        onChange: this.#onEndDateChange,
-      },
-    );
-  }
 
   #onStartDateChange = ([date]) => {
     this.updateElement({
@@ -225,6 +207,32 @@ export default class TripEventsListView extends AbstractStatefulView{
       endDate: date,
     });
   };
+
+  #setStartDatePicker() {
+    this.#datePicker = flatpickr(
+      this.element.querySelector('#event-start-time-1'),
+      {
+        dateFormat: 'd/m/y H:i',
+        enableTime: true,
+        maxDate: this._state.endDate,
+        defaultDate: humanizeOrderData(this._state.startDate, FormatTime.YEAR_MONTH_DAY_TIME),
+        onChange: this.#onStartDateChange,
+      },
+    );
+  }
+
+  #setEndDatePicker() {
+    this.#datePicker = flatpickr(
+      this.element.querySelector('#event-end-time-1'),
+      {
+        dateFormat: 'd/m/y H:i',
+        enableTime: true,
+        minDate: this._state.startDate,
+        defaultDate: humanizeOrderData(this._state.endDate, FormatTime.YEAR_MONTH_DAY_TIME),
+        onChange: this.#onEndDateChange,
+      },
+    );
+  }
 
   #onSelectOfferClick = (evt) => {
     const indexSelectOffer = [...this._state.offers].findIndex((id) => id === evt.target.dataset.id);

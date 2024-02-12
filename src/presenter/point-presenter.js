@@ -1,6 +1,6 @@
-import EditPointView from '../view/EditPointView.js';
-import PointView from '../view/PointView.js';
-import AddPointView from '../view/NewPointView.js';
+import EditPointView from '../view/edit-point-view.js';
+import PointView from '../view/point-view.js';
+import AddPointView from '../view/add-new-point-view.js';
 import { UserAction, UpdateType } from '../const.js';
 import { isDatesEqual } from '../utils/date.js';
 import { render, replace, remove, RenderPosition } from '../framework/render.js';
@@ -10,13 +10,17 @@ const Mode = {
   EDITING: 'EDITING',
 };
 
-export default class RenderPoint {
+export default class PointPresenter {
   #containerPoint = null;
 
   #pointView = null;
   #pointEditView = null;
   #pointModel = null;
   #addPointView = null;
+  #noPointComponent = null;
+  #renderNoPoint = null;
+  #filteredPoints = null;
+  #renderContents = null;
 
   #handlerModeChange = null;
   #handlerChangeData = null;
@@ -24,11 +28,15 @@ export default class RenderPoint {
   #pointData = null;
   #mode = Mode.DEFAULT;
 
-  constructor(containerListPoint, pointModel, onDateChange, onModeChange) {
+  constructor(containerListPoint, pointModel, onDateChange, onModeChange, noPointComponent, renderNoPoint, filteredPoints, renderContents) {
     this.#containerPoint = containerListPoint;
     this.#pointModel = pointModel;
     this.#handlerChangeData = onDateChange;
     this.#handlerModeChange = onModeChange;
+    this.#noPointComponent = noPointComponent;
+    this.#renderNoPoint = renderNoPoint;
+    this.#filteredPoints = filteredPoints;
+    this.#renderContents = renderContents;
   }
 
   init(point) {
@@ -49,8 +57,7 @@ export default class RenderPoint {
 
     this.#pointEditView = new EditPointView({
       point: point,
-      checkedOffers: [...this.#pointModel.getOfferById(point.typePoint, point.offers)],
-      offers: [...this.#pointModel.offers],
+      allOffers: [...this.#pointModel.offers],
       destinations: this.#pointModel.destinations,
       onFormSubmit: this.#handlerFormEditSubmit,
       onCloseEditClick: this.#handlerCloseEdit,
@@ -84,19 +91,19 @@ export default class RenderPoint {
       newPointButton.disabled = false;
     }
 
+    if (modePatch) {
+      this.#handlerSwapPointToEditClick();
+    }
+
     if (this.#mode !== Mode.DEFAULT) {
       this.#pointEditView.reset({
         point: this.#pointData,
-        checkedOffers: [...this.#pointModel.getOfferById(this.#pointData.typePoint, this.#pointData.offers)],
         offers: [...this.#pointModel.offers],
         destinations: this.#pointModel.destinations
       });
       this.#handlerSwapPointToEditClick();
     }
 
-    if (modePatch) {
-      this.#handlerSwapPointToEditClick();
-    }
 
   }
 
@@ -110,7 +117,6 @@ export default class RenderPoint {
   #handlerSwapPointToEditClick() {
     this.#pointEditView.reset({
       point: this.#pointData,
-      checkedOffers: [...this.#pointModel.getOfferById(this.#pointData.typePoint, this.#pointData.offers)],
       offers: [...this.#pointModel.offers],
       destinations: this.#pointModel.destinations
     });
@@ -124,7 +130,6 @@ export default class RenderPoint {
       evt.preventDefault();
       this.#pointEditView.reset({
         point: this.#pointData,
-        checkedOffers: [...this.#pointModel.getOfferById(this.#pointData.typePoint, this.#pointData.offers)],
         offers: [...this.#pointModel.offers],
         destinations: this.#pointModel.destinations
       });
@@ -134,10 +139,10 @@ export default class RenderPoint {
 
   #escCloseNewPointHandler = (evt) => {
     if (evt.key === 'Escape') {
-      this.#onClosePointAddClick();
       const newPointButton = document.querySelector('.trip-main__event-add-btn');
       newPointButton.disabled = false;
       document.removeEventListener('keydown', this.#escCloseNewPointHandler);
+      this.#onClosePointAddClick();
     }
   };
 
@@ -181,7 +186,16 @@ export default class RenderPoint {
     remove(this.#addPointView);
   }
 
+  onCloseNewPoint() {
+    if (this.#addPointView !== null) {
+      remove(this.#addPointView);
+    }
+  }
+
   renderPointAdd = () => {
+    if (this.#noPointComponent !== null && this.#filteredPoints?.length === 0) {
+      this.#noPointComponent = null;
+    }
     if (this.#addPointView === null) {
       this.#addPointView = new AddPointView({
         offers: [...this.#pointModel.offers],
@@ -199,7 +213,7 @@ export default class RenderPoint {
       this.#pointView.shake();
       return;
     }
-
+    document.addEventListener('keydown', this.#escKeyDownHandler);
     const resetFormState = () => {
       this.#pointEditView.updateElement({
         isDisabled: false,
@@ -213,7 +227,7 @@ export default class RenderPoint {
 
   setAbortingNewPoint() {
     this.#addPointView.shake();
-
+    document.addEventListener('keydown', this.#escCloseNewPointHandler);
     const resetFormState = () => {
       this.#addPointView.updateElement({
         isDisabled: false,
@@ -225,13 +239,19 @@ export default class RenderPoint {
   }
 
   setSavingEditPoint() {
-    this.#pointEditView.updateElement({
-      isDisabled: true,
-      isSaving: true,
-    });
+    if (this.#mode === Mode.EDITING) {
+      document.removeEventListener('keydown', this.#escKeyDownHandler);
+      document.removeEventListener('keydown', this.#escCloseNewPointHandler);
+      this.#pointEditView.updateElement({
+        isDisabled: true,
+        isSaving: true,
+      });
+    }
   }
 
   setSavingNewPoint() {
+    document.removeEventListener('keydown', this.#escKeyDownHandler);
+    document.removeEventListener('keydown', this.#escCloseNewPointHandler);
     this.#addPointView.updateElement({
       isDisabled: true,
       isSaving: true,
@@ -239,6 +259,8 @@ export default class RenderPoint {
   }
 
   setDeleting() {
+    document.removeEventListener('keydown', this.#escKeyDownHandler);
+    document.removeEventListener('keydown', this.#escCloseNewPointHandler);
     if (this.#mode === Mode.EDITING) {
       this.#pointEditView.updateElement({
         isDisabled: true,
@@ -248,13 +270,22 @@ export default class RenderPoint {
   }
 
   #onClosePointAddClick = () => {
-    remove(this.#addPointView);
+    document.removeEventListener('keydown', this.#escCloseNewPointHandler);
     this.#addPointView.reset({
       offers: [...this.#pointModel.offers],
       destinations: this.#pointModel.destinations
     });
-    document.removeEventListener('keydown', this.#escCloseNewPointHandler);
+    remove(this.#addPointView);
     this.#addPointView = null;
+
+    if (this.#pointModel.points.length !== 0 && this.#filteredPoints?.length === 0) {
+      this.#renderContents();
+      return;
+    }
+
+    if (this.#noPointComponent === null && this.#filteredPoints?.length === 0) {
+      this.#renderNoPoint();
+    }
   };
 
   #onSaveNewPointSubmit = (point) => {

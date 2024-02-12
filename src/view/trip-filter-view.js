@@ -21,7 +21,7 @@ function createTripControls({filters, currentFilterType, pointsTimesLength}) {
   `;
 }
 
-export default class TripControlsView extends AbstractView{
+export default class TripFilterView extends AbstractView{
   #filters = null;
   #currentFilterType = null;
   #handlerFilterTypeChange = null;

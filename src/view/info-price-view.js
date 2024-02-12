@@ -1,7 +1,9 @@
 import AbstractView from '../framework/view/abstract-view.js';
+import { sortPointsByDay } from '../utils/point.js';
 
 function createPrice(pointModel) {
-  const points = pointModel.points;
+  const points = [...pointModel.points];
+  points.sort(sortPointsByDay);
   let totalPrice = 0;
 
   for (const point of points) {
@@ -10,7 +12,7 @@ function createPrice(pointModel) {
 
   return `
     <p class="trip-info__cost">
-      Total: &euro;&nbsp;<span class="trip-info__cost-value">${totalPrice}</span>
+      ${points.length !== 0 ? `Total: &euro;&nbsp;<span class="trip-info__cost-value">${totalPrice}</span>` : ''}
     </p>
   `;
 }

@@ -10,11 +10,11 @@ function sortPointByTime(pointA, pointB) {
   const timeA = getDateDuration(pointA);
   const timeB = getDateDuration(pointB);
 
-  return timeB - timeA;
+  return timeA - timeB;
 }
 
 function sortPointByPrice(pointA, pointB) {
-  return pointA.price - pointB.price;
+  return pointB.price - pointA.price;
 }
 
 function sortPointsByDay (pointA, pointB) {
